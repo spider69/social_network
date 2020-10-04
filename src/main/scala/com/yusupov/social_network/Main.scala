@@ -8,6 +8,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
 import com.yusupov.social_network.actors.RestApi
 import com.yusupov.social_network.injection.ServiceModule
+import org.flywaydb.core.Flyway
 
 object Main extends App
   with RequestTimeout
@@ -20,6 +21,17 @@ object Main extends App
 
   val host = config.getString("service-settings.host")
   val port = config.getInt("service-settings.port")
+
+  lazy val flyway = Flyway
+    .configure()
+    .baselineOnMigrate(true)
+    .dataSource(
+      config.getString("database.properties.url"),
+      config.getString("database.properties.user"),
+      config.getString("database.properties.password")
+    )
+    .load()
+  flyway.migrate()
 
   implicit val system = ActorSystem()
   implicit val ec = system.dispatcher
