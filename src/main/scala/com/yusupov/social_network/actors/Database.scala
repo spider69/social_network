@@ -1,21 +1,16 @@
 package com.yusupov.social_network.actors
 
-import java.util.UUID
-
-import akka.actor.{Actor, Props}
-import akka.util.Timeout
+import akka.actor.Actor
 import com.typesafe.scalalogging.LazyLogging
 import com.yusupov.social_network.actors.Database.CreateForm
 import com.yusupov.social_network.data.Form
-import slick.jdbc.MySQLProfile
-
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
+import com.yusupov.social_network.database.DatabaseProvider
+import com.yusupov.social_network.database.handlers.AuthHandler
+import slick.jdbc.JdbcProfile
 
 object Database {
   trait DatabaseTag
 
-  def props(implicit timeout: Timeout) = Props(new Database)
   def name = "database"
 
   // requests
@@ -23,28 +18,26 @@ object Database {
   case class CreateForm(form: Form)
 
   // responses
-  case class UserCreated(id: UUID)
+  case object UserCreated
   case object FormCreated
 }
 
-import Database._
+import com.yusupov.social_network.actors.Database._
 
-class Database() extends Actor with LazyLogging {
+class Database[T <: JdbcProfile](
+  databaseProvider: DatabaseProvider[T]
+) extends Actor
+  with LazyLogging
+{
 
-  import MySQLProfile.api._
-
-  lazy val database = MySQLProfile.api.Database.forConfig("database")
+  val authHandler = new AuthHandler[T](databaseProvider)
 
   override def receive: Receive = {
     case CreateUser(name, password) =>
       logger.debug(s"Creating user $name")
-      // create user in database
-      val userId = UUID.randomUUID()
-      val userIdString = userId.toString
-      val query = sqlu"INSERT INTO Users(id,name,password) VALUES('#$userIdString','#$name','#$password')"
-      val future = database.run(query)
-      Await.result(future, Duration.Inf)
-      sender() ! UserCreated(userId)
+      val query = authHandler.createUser(name, password)
+      databaseProvider.exec(query)
+      sender() ! UserCreated
 
     case CreateForm(form) =>
       logger.debug(s"Creating form for ${form.name}")

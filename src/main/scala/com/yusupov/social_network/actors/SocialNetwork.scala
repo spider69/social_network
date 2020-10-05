@@ -1,7 +1,5 @@
 package com.yusupov.social_network.actors
 
-import java.util.UUID
-
 import akka.actor.{Actor, ActorRef}
 import akka.pattern.ask
 import akka.util.Timeout
@@ -23,7 +21,7 @@ object SocialNetwork {
   case class CreateForm(form: Form) extends Request
 
   sealed trait Response
-  case class SignUpSuccessful(id: UUID) extends Response
+  case object SignUpSuccessful extends Response
   case object FormCreated extends Response
   case object InternalError extends Response
 }
@@ -38,7 +36,6 @@ class SocialNetwork(
   import context.dispatcher
 
   implicit val timeout = requestTimeout
-  def createDatabase = context.actorOf(Database.props(requestTimeout), UUID.randomUUID().toString)
 
   override def receive: Receive = {
     case SignUp(Credentials(userName, password)) =>
@@ -46,8 +43,8 @@ class SocialNetwork(
       val requester = sender()
       (database ? Database.CreateUser(userName, password))
         .onComplete {
-          case Success(Database.UserCreated(id)) =>
-            requester ! SignUpSuccessful(id)
+          case Success(Database.UserCreated) =>
+            requester ! SignUpSuccessful
           case _ =>
             requester ! InternalError
         }

@@ -38,7 +38,7 @@ trait RestRoutes extends SocialNetworkApi
           entity(as[Credentials]) {
             credentials =>
               onSuccess(signUp(credentials)) {
-                case SignUpSuccessful(_) => complete(Created)
+                case SignUpSuccessful => complete(Created)
                 case _ => complete(InternalServerError)
               }
           }
