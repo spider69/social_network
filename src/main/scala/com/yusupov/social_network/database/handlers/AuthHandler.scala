@@ -1,16 +1,26 @@
 package com.yusupov.social_network.database.handlers
 
-import java.util.UUID
-
 import com.yusupov.social_network.database.DatabaseProvider
 import slick.jdbc.JdbcProfile
 
 class AuthHandler[T <: JdbcProfile](databaseProvider: DatabaseProvider[T]) {
   import databaseProvider.profile.api._
 
-  def createUser(name: String, password: String) = {
-    val userId = UUID.randomUUID()
-    val userIdString = userId.toString
-    sqlu"INSERT INTO Users(id,name,password) VALUES('#$userIdString','#$name','#$password')"
-  }
+  def createUser(email: String, name: String, password: String) =
+    sqlu"INSERT INTO Users(id,name,password) VALUES('#$email','#$name','#$password')"
+
+  def createSession(sessionId: String, userId: String) =
+    sqlu"INSERT INTO Sessions(id,user_id) VALUES('#$sessionId','#$userId')"
+
+  def getSession(sessionId: String) =
+    sql"SELECT id FROM Sessions WHERE id='#$sessionId' LIMIT 1"
+      .as[String]
+
+  def deleteSession(sessionId: String) =
+    sqlu"DELETE FROM Sessions WHERE id='#$sessionId'"
+
+  def getUser(id: String) =
+    sql"SELECT id,name,password FROM Users WHERE id='#$id' LIMIT 1"
+      .as[(String,String,String)]
+
 }
