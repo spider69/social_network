@@ -50,7 +50,7 @@ trait RestRoutes extends SocialNetworkApi
       pathPrefix("login") {
         indexRoute
       } ~
-      (pathPrefix("signup") | pathPrefix("home") | pathPrefix("user_forms") | pathPrefix("edit_form")) {
+      (pathPrefix("signup") | pathPrefix("home") | pathPrefix("user_forms") | pathPrefix("edit_form") | pathPrefix("users")) {
         extractUnmatchedPath {_ =>
           indexRoute
         }
@@ -95,22 +95,26 @@ trait RestRoutes extends SocialNetworkApi
   }
 
   def usersRoute = {
-    (pathPrefix("all_users") & optionalCookie("ssid")) {
-      case Some(sessionCookie) =>
-        onComplete(checkCurrentSession(sessionCookie.value)) {
-          case Success(Authenticator.SessionIsValid(_)) =>
-            onSuccess(getAllUsers) {
-              case SocialNetwork.Users(users) => complete(StatusCodes.Created, users.map(u => User(u._1, u._2)))
-              case _ => complete(StatusCodes.InternalServerError)
-            }
+    pathPrefix("all_users") {
+      parameters("filter".optional) { filterExpr =>
+        optionalCookie("ssid") {
+          case Some(sessionCookie) =>
+            onComplete(checkCurrentSession(sessionCookie.value)) {
+              case Success(Authenticator.SessionIsValid(_)) =>
+                onSuccess(getAllUsers(filterExpr)) {
+                  case SocialNetwork.Users(users) => complete(StatusCodes.Created, users.map(u => User(u._1, u._2, u._3)))
+                  case _ => complete(StatusCodes.InternalServerError)
+                }
 
-          case Success(Authenticator.SessionIsInvalid) =>
-            complete(StatusCodes.NotFound)
-          case _ =>
-            complete(StatusCodes.InternalServerError)
+              case Success(Authenticator.SessionIsInvalid) =>
+                complete(StatusCodes.NotFound)
+              case _ =>
+                complete(StatusCodes.InternalServerError)
+            }
+          case None =>
+            complete(StatusCodes.Unauthorized)
         }
-      case None =>
-        complete(StatusCodes.Unauthorized)
+      }
     }
   }
 
@@ -189,7 +193,7 @@ trait RestRoutes extends SocialNetworkApi
       case SignUpSuccessful =>
         HttpResponse(StatusCodes.Created)
 
-      case SignInSuccessful(sessionId, user) =>
+      case SignInSuccessful(sessionId, userId) =>
         HttpResponse(
           StatusCodes.OK,
           `Set-Cookie`(
@@ -202,7 +206,7 @@ trait RestRoutes extends SocialNetworkApi
               httpOnly = true
             )
           ) :: Nil,
-          user.email
+          userId
         )
     }
 
@@ -218,9 +222,9 @@ trait SocialNetworkApi extends LazyLogging {
   implicit def executionContext: ExecutionContext
   implicit def requestTimeout: Timeout
 
-  def getAllUsers = {
+  def getAllUsers(filterExpr: Option[String]) = {
     logger.debug(s"API: getting all users")
-    socialNetwork.ask(GetUsers).mapTo[Response]
+    socialNetwork.ask(GetUsers(filterExpr)).mapTo[Response]
   }
 
   def createForm(userId: String, form: UserForm) = {

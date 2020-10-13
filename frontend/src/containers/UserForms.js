@@ -50,7 +50,7 @@ export default function UserForms() {
                     <h2>
                         <strong>City</strong> {form.city}
                     </h2>
-                    {id == userId && <Button block onClick={() => onEdit()} className="px-4">Edit form</Button>}
+                    {id === userId && <Button block onClick={() => onEdit()} className="px-4">Edit form</Button>}
                 </div>
             )}
         </div>

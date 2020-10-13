@@ -8,6 +8,7 @@ import AuthenticatedRoute from "./components/AuthenticatedRoute";
 import UnauthenticatedRoute from "./components/UnauthenticatedRoute";
 import UserForms from "./containers/UserForms";
 import EditForm from "./containers/EditForm";
+import Users from "./containers/Users"
 
 export default function Routes() {
     return (
@@ -15,6 +16,9 @@ export default function Routes() {
             <Route exact path="/">
                 <Home />
             </Route>
+            <AuthenticatedRoute exact path="/users">
+                <Users />
+            </AuthenticatedRoute>
             <AuthenticatedRoute exact path="/user_forms/:id">
                 <UserForms />
             </AuthenticatedRoute>

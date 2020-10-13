@@ -17,13 +17,13 @@ object SocialNetwork {
   def name = "social_network"
 
   sealed trait Request
-  case object GetUsers extends Request
+  case class GetUsers(filterExpr: Option[String]) extends Request
   case class CreateForm(userId: String, form: UserForm) extends Request
   case class GetForm(userId: String) extends Request
   case class UpdateForm(userId: String, form: UserForm) extends Request
 
   sealed trait Response
-  case class Users(users: Seq[(String, String)]) extends Response
+  case class Users(users: Seq[(String, String, String)]) extends Response
   case object FormCreated extends Response
   case object FormUpdated extends Response
   case class RequestedForm(form: UserForm) extends Response
@@ -42,10 +42,10 @@ class SocialNetwork(
   implicit val timeout = requestTimeout
 
   override def receive: Receive = {
-    case GetUsers =>
+    case GetUsers(filterExpr) =>
       logger.debug("Getting users")
       val requester = sender()
-      (database ? Database.GetUsers)
+      (database ? Database.GetUsers(filterExpr))
         .onComplete {
           case Success(Database.Users(users)) =>
             requester ! Users(users)

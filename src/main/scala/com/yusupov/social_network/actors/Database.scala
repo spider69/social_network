@@ -22,13 +22,13 @@ object Database {
   case class CheckSession(sessionId: String)
   case class DeleteSession(sessionId: String)
 
-  case object GetUsers
+  case class GetUsers(filterExpr: Option[String])
   case class CreateForm(userId: String, form: UserForm)
   case class GetForm(userId: String)
   case class UpdateForm(userId: String, form: UserForm)
 
   // responses
-  case class Users(users: Seq[(String, String)])
+  case class Users(users: Seq[(String, String, String)])
   case class UserById(id: String, name: String, password: String)
   case object UserNotFound
   case object UserCreated
@@ -96,9 +96,9 @@ class Database[T <: JdbcProfile](
       databaseProvider.exec(query)
       sender() ! SessionDeleted
 
-    case GetUsers =>
+    case GetUsers(filterExpr) =>
       logger.debug("Getting users")
-      val query = usersHandler.getUsers
+      val query = usersHandler.getUsers(filterExpr)
       val result = databaseProvider.exec(query)
       sender() ! Users(result)
 

@@ -29,7 +29,7 @@ export default function Signup() {
     async function handleSignUpResponse(response) {
         let errorMessage = await response.text()
         if (!response.ok) {
-          if (errorMessage == "User already exists") {
+          if (errorMessage === "User already exists") {
             throw errorMessage;
           } else {
             throw Error(response.statusText);

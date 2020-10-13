@@ -16,7 +16,7 @@ function useFormFields(initialState) {
         setValues(newFields);
       },
       function(event) {
-        if (event.target.id == "age") {
+        if (event.target.id === "age") {
           setValues({...fields, [event.target.id]: +event.target.value});
         } else {
           setValues({...fields, [event.target.id]: event.target.value});
@@ -45,7 +45,7 @@ export default function UserForms() {
         }
 
         onLoad();
-    }, [id]);
+    }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
 
     async function handleSubmit(event) {
         event.preventDefault();
@@ -70,7 +70,7 @@ export default function UserForms() {
 
     return (
         <div className="Edit form">
-            {form && id == userId && (<form onSubmit={handleSubmit}>
+            {form && id === userId && (<form onSubmit={handleSubmit}>
                 <FormGroup controlId="firstName">
                     <FormLabel>First name</FormLabel>
                     <FormControl autoFocus type="text" value={form.firstName} onChange={handleFormChange}/>

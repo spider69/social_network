@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ListGroup, ListGroupItem } from "react-bootstrap";
+import { ListGroup, ListGroupItem, Form, FormControl, Button } from "react-bootstrap";
 import { LinkContainer } from "react-router-bootstrap";
 import { useAppContext } from "../libs/contextLib";
 import { handleErrors, onError } from "../libs/errorLib";
@@ -8,20 +8,21 @@ import "./Users.css";
 export default function Users() {
 
   const [users, setUsers] = useState([]);
-  const { isAuthenticated } = useAppContext();
+  const { userId } = useAppContext();
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   
   useEffect(() => {
     async function onLoad() {
-      if (!isAuthenticated) {
+      if (!userId) {
         return;
       }
   
       try {
-        let response = await fetch('http://localhost:8080/all_users')
+        let allUsers = await fetch('http://localhost:8080/all_users')
           .then(handleErrors)
-        let json = await response.json()
-        setUsers(json);
+          .then(response => response.json())
+        setUsers(allUsers)
       } catch (e) {
         onError(e);
       }
@@ -30,34 +31,42 @@ export default function Users() {
     }
   
     onLoad();
-  }, [isAuthenticated]);
+  }, [userId]);
 
   function renderUsersList(users) {
     return [{}].concat(users).map((user, i) =>
-      i !== 0 ? (
-        <LinkContainer key={user.email} to={`/user_forms/${user.email}`}>
+      i !== 0 && (
+        <LinkContainer key={user.id} to={`/user_forms/${user.id}`}>
           <ListGroupItem action>
-            Name: {user.name}
+             {user.firstName} {user.lastName}
           </ListGroupItem>
         </LinkContainer>
-      ) : (
-          <h1>All users</h1>
-        )
+      ) 
     );
   }
 
-  function renderLander() {
-    return (
-      <div className="lander">
-        <h1>Honey cat's social network</h1>
-        <p>Meow meow meow</p>
-      </div>
-    );
+  async function onSearch() {
+    try {
+      let filteredUsers = await fetch(`http://localhost:8080/all_users/?filter=${searchQuery}`)
+        .then(handleErrors)
+        .then(response => response.json())
+      setUsers(filteredUsers)
+    } catch (e) {
+      onError(e);
+    }
+  }
+
+  function handleChangeSearchQuery(e) {
+    setSearchQuery(e.target.value)
   }
 
   function renderUsers() {
     return (
       <div className="users">
+        <Form inline>
+          <FormControl type="text" placeholder="Search" className="mr-sm-2" onChange={handleChangeSearchQuery} />
+          <Button variant="outline-info" onClick={() => onSearch()}>Search</Button>
+        </Form>
         <ListGroup variant="flush">
           {!isLoading && renderUsersList(users)}
         </ListGroup>
@@ -67,7 +76,7 @@ export default function Users() {
 
   return (
     <div className="Users">
-      {isAuthenticated ? renderUsers() : renderLander()}
+      {userId && renderUsers()}
     </div>
   );
 }

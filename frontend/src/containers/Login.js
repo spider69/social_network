@@ -4,7 +4,7 @@ import { FormGroup, FormControl, FormLabel } from "react-bootstrap";
 import LoaderButton from "../components/LoaderButton";
 import { useHistory } from "react-router-dom";
 import { useFormFields } from "../libs/hooksLib";
-import { handleErrors, onError } from "../libs/errorLib";
+import { onError } from "../libs/errorLib";
 import "./Login.css";
 
 
@@ -24,7 +24,7 @@ export default function Login() {
     async function handleLoginResponse(response) {
         let responseText = await response.text()
         if (!response.ok) {
-            if (responseText == "Wrong credentials") {
+            if (responseText === "Wrong credentials") {
                 throw responseText;
             } else {
                 throw Error(response.statusText);

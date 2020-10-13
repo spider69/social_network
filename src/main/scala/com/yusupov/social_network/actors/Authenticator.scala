@@ -7,7 +7,6 @@ import akka.util.Timeout
 import com.softwaremill.tagging.@@
 import com.typesafe.scalalogging.LazyLogging
 import com.yusupov.social_network.actors.Database.{DatabaseTag, SessionCreated, UserById, UserCreated, UserNotFound}
-import com.yusupov.social_network.data.User
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -31,7 +30,7 @@ object Authenticator {
   case class SessionIsValid(user: String) extends Response
   case object SessionIsInvalid extends Response
   case object SessionInvalidated extends Response
-  case class SignInSuccessful(sessionId: String, user: User) extends Response
+  case class SignInSuccessful(sessionId: String, userId: String) extends Response
 
   case class FailureAuthResponse(statusCode: StatusCode, cause: String) extends Response
 }
@@ -73,11 +72,11 @@ class Authenticator(
       val requester = sender()
       (database ? Database.GetUserById(email))
         .flatMap {
-          case UserById(_, name, storedPassword) =>
+          case UserById(_, _, storedPassword) =>
             if (storedPassword == password) {
               (database ? Database.CreateSession(email)).map {
                 case SessionCreated(id) =>
-                  requester ! SignInSuccessful(id, User(email, name))
+                  requester ! SignInSuccessful(id, email)
                 case WrongCredentials =>
                   requester ! FailureAuthResponse(StatusCodes.Unauthorized, "Wrong credentials")
                 case _ =>

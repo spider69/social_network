@@ -5,5 +5,5 @@ import spray.json.DefaultJsonProtocol
 
 trait JsonMarshaller extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val formMarshaller = jsonFormat6(UserForm)
-  implicit val userMarshaller = jsonFormat2(User)
+  implicit val userMarshaller = jsonFormat3(User)
 }
