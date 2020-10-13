@@ -3,8 +3,8 @@ import { FormGroup, FormControl, FormLabel } from "react-bootstrap";
 import LoaderButton from "../components/LoaderButton";
 import { useHistory } from "react-router-dom";
 import { useFormFields } from "../libs/hooksLib";
+import { onError } from "../libs/errorLib";
 import "./Signup.css";
-import { handleErrors, onError } from "../libs/errorLib";
 
 export default function Signup() {
     const history = useHistory();
@@ -75,8 +75,7 @@ export default function Signup() {
                 <FormGroup controlId="userName">
                     <FormLabel>User name</FormLabel>
                     <FormControl
-                        autoFocus
-                        type="userName"
+                        type="text"
                         value={fields.userName}
                         onChange={handleFieldChange}
                     />
@@ -103,7 +102,7 @@ export default function Signup() {
                     isLoading={isLoading}
                     disabled={!validateForm()}
                 >
-                    Login
+                    Sign up
                </LoaderButton>
             </form>
         </div>

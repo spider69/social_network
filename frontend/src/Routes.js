@@ -4,6 +4,10 @@ import Home from "./containers/Home";
 import NotFound from "./containers/NotFound";
 import Login from "./containers/Login";
 import Signup from "./containers/Signup";
+import AuthenticatedRoute from "./components/AuthenticatedRoute";
+import UnauthenticatedRoute from "./components/UnauthenticatedRoute";
+import UserForms from "./containers/UserForms";
+import EditForm from "./containers/EditForm";
 
 export default function Routes() {
     return (
@@ -11,15 +15,21 @@ export default function Routes() {
             <Route exact path="/">
                 <Home />
             </Route>
-            <Route exact path="/home">
+            <AuthenticatedRoute exact path="/user_forms/:id">
+                <UserForms />
+            </AuthenticatedRoute>
+            <AuthenticatedRoute exact path="/edit_form/:id">
+                <EditForm />
+            </AuthenticatedRoute>
+            <AuthenticatedRoute exact path="/home">
                 <Home />
-            </Route>
-            <Route exact path="/login">
+            </AuthenticatedRoute>
+            <UnauthenticatedRoute exact path="/login">
                 <Login />
-            </Route>
-            <Route exact path="/signup">
+            </UnauthenticatedRoute>
+            <UnauthenticatedRoute exact path="/signup">
                 <Signup />
-            </Route>
+            </UnauthenticatedRoute>
             <Route>
                 <NotFound />
             </Route>

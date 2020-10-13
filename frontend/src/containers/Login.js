@@ -10,7 +10,7 @@ import "./Login.css";
 
 export default function Login() {
     const history = useHistory();
-    const { userHasAuthenticated } = useAppContext();
+    const { setUserId } = useAppContext();
     const [isLoading, setIsLoading] = useState(false);
     const [fields, handleFieldChange] = useFormFields({
         email: "",
@@ -19,6 +19,18 @@ export default function Login() {
 
     function validateForm() {
         return fields.email.length > 0 && fields.password.length > 0;
+    }
+
+    async function handleLoginResponse(response) {
+        let responseText = await response.text()
+        if (!response.ok) {
+            if (responseText == "Wrong credentials") {
+                throw responseText;
+            } else {
+                throw Error(response.statusText);
+            }
+        }
+        return responseText;
     }
 
     async function handleSubmit(event) {
@@ -30,11 +42,11 @@ export default function Login() {
             let formData = new FormData()
             formData.append('login', fields.email)
             formData.append('password', fields.password)
-            await fetch('http://localhost:8080/sign_in', {
+            let userId = await fetch('http://localhost:8080/sign_in', {
                 method: 'POST',
                 body: formData
-            }).then(handleErrors)
-            userHasAuthenticated(true);
+            }).then(handleLoginResponse)
+            setUserId(userId)
             history.push("/");
         } catch (e) {
             onError(e);
