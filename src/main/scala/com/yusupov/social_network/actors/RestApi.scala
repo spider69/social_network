@@ -40,6 +40,7 @@ trait RestRoutes extends SocialNetworkApi
     uiRoute ~
       authRoute ~
       usersRoute ~
+      friendsRoute ~
       formsRoute
   }
 
@@ -116,6 +117,70 @@ trait RestRoutes extends SocialNetworkApi
         }
       }
     }
+  }
+
+  def friendsRoute = {
+    pathPrefix("add_friend") {
+      parameters("user", "friend") { (user, friend) =>
+        optionalCookie("ssid") {
+          case Some(sessionCookie) =>
+            onComplete(checkCurrentSession(sessionCookie.value)) {
+              case Success(Authenticator.SessionIsValid(_)) =>
+                onSuccess(addFriend(user, friend)) {
+                  case SocialNetwork.FriendAdded => complete(StatusCodes.Created)
+                  case _ => complete(StatusCodes.InternalServerError)
+                }
+
+              case Success(Authenticator.SessionIsInvalid) =>
+                complete(StatusCodes.NotFound)
+              case _ =>
+                complete(StatusCodes.InternalServerError)
+            }
+          case None =>
+            complete(StatusCodes.Unauthorized)
+        }
+      }
+    } ~
+      pathPrefix("get_friends" / Segment) { user =>
+        optionalCookie("ssid") {
+          case Some(sessionCookie) =>
+            onComplete(checkCurrentSession(sessionCookie.value)) {
+              case Success(Authenticator.SessionIsValid(_)) =>
+                onSuccess(getFriends(user)) {
+                  case SocialNetwork.Users(users) => complete(StatusCodes.Created, users.map(u => User(u._1, u._2, u._3)))
+                  case _ => complete(StatusCodes.InternalServerError)
+                }
+
+              case Success(Authenticator.SessionIsInvalid) =>
+                complete(StatusCodes.NotFound)
+              case _ =>
+                complete(StatusCodes.InternalServerError)
+            }
+          case None =>
+            complete(StatusCodes.Unauthorized)
+        }
+      } ~
+      pathPrefix("remove_friend") {
+        parameters("user", "friend") { (user, friend) =>
+          optionalCookie("ssid") {
+            case Some(sessionCookie) =>
+              onComplete(checkCurrentSession(sessionCookie.value)) {
+                case Success(Authenticator.SessionIsValid(_)) =>
+                  onSuccess(removeFriend(user, friend)) {
+                    case SocialNetwork.FriendRemoved => complete(StatusCodes.OK)
+                    case _ => complete(StatusCodes.InternalServerError)
+                  }
+
+                case Success(Authenticator.SessionIsInvalid) =>
+                  complete(StatusCodes.NotFound)
+                case _ =>
+                  complete(StatusCodes.InternalServerError)
+              }
+            case None =>
+              complete(StatusCodes.Unauthorized)
+          }
+        }
+      }
   }
 
   def formsRoute = {
@@ -240,6 +305,21 @@ trait SocialNetworkApi extends LazyLogging {
   def updateForm(userId: String, form: UserForm) = {
     logger.debug(s"API: updateForm for $userId")
     socialNetwork.ask(UpdateForm(userId, form)).mapTo[Response]
+  }
+
+  def addFriend(userId: String, friendId: String) = {
+    logger.debug(s"API: add to friends $friendId for $userId")
+    socialNetwork.ask(AddFriend(userId, friendId)).mapTo[Response]
+  }
+
+  def removeFriend(userId: String, friendId: String) = {
+    logger.debug(s"API: remove from friends $friendId for $userId")
+    socialNetwork.ask(RemoveFriend(userId, friendId)).mapTo[Response]
+  }
+
+  def getFriends(userId: String) = {
+    logger.debug(s"API: get friends of $userId")
+    socialNetwork.ask(GetFriends(userId)).mapTo[Response]
   }
 
 }

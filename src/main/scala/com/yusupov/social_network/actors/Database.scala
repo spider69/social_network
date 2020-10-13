@@ -7,7 +7,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.yusupov.social_network.actors.Database.CreateForm
 import com.yusupov.social_network.data.UserForm
 import com.yusupov.social_network.database.DatabaseProvider
-import com.yusupov.social_network.database.handlers.{AuthHandler, FormsHandler, UsersHandler}
+import com.yusupov.social_network.database.handlers.{AuthHandler, FormsHandler, FriendsHandler, UsersHandler}
 import slick.jdbc.JdbcProfile
 
 object Database {
@@ -27,6 +27,10 @@ object Database {
   case class GetForm(userId: String)
   case class UpdateForm(userId: String, form: UserForm)
 
+  case class AddFriend(userId: String, friendId: String)
+  case class RemoveFriend(userId: String, friendId: String)
+  case class GetFriends(userId: String)
+
   // responses
   case class Users(users: Seq[(String, String, String)])
   case class UserById(id: String, name: String, password: String)
@@ -41,6 +45,9 @@ object Database {
   case class RequestedForm(form: UserForm)
   case object FormUpdated
   case object FormNotFound
+
+  case object FriendAdded
+  case object FriendRemoved
 }
 
 import com.yusupov.social_network.actors.Database._
@@ -54,6 +61,7 @@ class Database[T <: JdbcProfile](
   val authHandler = new AuthHandler[T](databaseProvider)
   val usersHandler = new UsersHandler[T](databaseProvider)
   val formsHandler = new FormsHandler[T](databaseProvider)
+  val friendsHandler = new FriendsHandler[T](databaseProvider)
 
   override def receive: Receive = {
     case GetUserById(id) =>
@@ -122,6 +130,24 @@ class Database[T <: JdbcProfile](
       val query = formsHandler.updateForm(userId, form)
       databaseProvider.exec(query)
       sender() ! FormUpdated
+
+    case AddFriend(userId, friendId) =>
+      logger.debug(s"Add friend $friendId for $userId")
+      val query = friendsHandler.addFriend(userId, friendId).andThen(friendsHandler.addFriend(friendId, userId))
+      databaseProvider.exec(query)
+      sender() ! FriendAdded
+
+    case GetFriends(userId) =>
+      logger.debug(s"Get friends of $userId")
+      val query = friendsHandler.getFriends(userId)
+      val result = databaseProvider.exec(query)
+      sender() ! Users(result)
+
+    case RemoveFriend(userId, friendId) =>
+      logger.debug(s"Remove friend $friendId for $userId")
+      val query = friendsHandler.removeFriend(userId, friendId).andThen(friendsHandler.removeFriend(friendId, userId))
+      databaseProvider.exec(query)
+      sender() ! FriendRemoved
 
   }
 }

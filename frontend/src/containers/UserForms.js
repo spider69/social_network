@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { ListGroup, ListGroupItem, Button } from "react-bootstrap";
+import { LinkContainer } from "react-router-bootstrap";
 import { useParams } from "react-router-dom";
 import { useHistory } from "react-router-dom";
-import { Button } from "react-bootstrap";
 import { useAppContext } from "../libs/contextLib";
 import { handleErrors, onError } from "../libs/errorLib";
 import "./UserForms.css"
@@ -11,6 +12,7 @@ export default function UserForms() {
     const { userId } = useAppContext();
     const history = useHistory();
     const [form, setForm] = useState(null);
+    const [friends, setFriends] = useState([])
 
     useEffect(() => {
         async function onLoad() {
@@ -19,6 +21,12 @@ export default function UserForms() {
                     .then(handleErrors)
                     .then(response => response.json())
                 setForm(requestedForm);
+
+                let requestedFriends = await fetch(`http://localhost:8080/get_friends/${id}`)
+                    .then(handleErrors)
+                    .then(response => response.json())
+                setFriends(requestedFriends)
+                console.log(requestedFriends)
             } catch (e) {
                 onError(e);
             }
@@ -31,6 +39,38 @@ export default function UserForms() {
         history.push(`/edit_form/${userId}`)
     }
 
+    async function onAddFriend() {
+        try {
+            await fetch(`http://localhost:8080/add_friend/?user=${userId}&friend=${id}`)
+                .then(handleErrors)
+        } catch (e) {
+            onError(e);
+        }
+        window.location.reload(false);
+    }
+
+    async function onRemoveFriend() {
+        try {
+            await fetch(`http://localhost:8080/remove_friend/?user=${userId}&friend=${id}`)
+                .then(handleErrors)
+        } catch (e) {
+            onError(e);
+        }
+        window.location.reload(false);
+    }
+
+    function renderFriendsList(friends) {
+        return [{}].concat(friends).map((friend, i) =>
+            i !== 0 && (
+                <LinkContainer key={friend.id} to={`/user_forms/${friend.id}`}>
+                    <ListGroupItem action>
+                        {friend.firstName} {friend.lastName}
+                    </ListGroupItem>
+                </LinkContainer>
+            )
+        );
+    }
+
     return (
         <div className="UserForms">
             {form && (
@@ -38,6 +78,13 @@ export default function UserForms() {
                     <h3>
                         {form.firstName} {form.lastName}
                     </h3>
+                    {id === userId ?
+                        <Button onClick={() => onEdit()} className="px-4">Edit form</Button>
+                        : friends.filter(f => f.id !== id).length === 0 ?
+                            <Button variant="success" onClick={() => onAddFriend()} className="px-4">Add friend</Button>
+                            :
+                            <Button variant="danger" onClick={() => onRemoveFriend()} className="px-4">Remove friend</Button>
+                    }
                     <h2>
                         <strong>Age</strong> {form.age}
                     </h2>
@@ -50,7 +97,12 @@ export default function UserForms() {
                     <h2>
                         <strong>City</strong> {form.city}
                     </h2>
-                    {id === userId && <Button block onClick={() => onEdit()} className="px-4">Edit form</Button>}
+                    <h2>
+                        <strong>Friends</strong>
+                        <ListGroup variant="flush">
+                            {renderFriendsList(friends)}
+                        </ListGroup>
+                    </h2>
                 </div>
             )}
         </div>

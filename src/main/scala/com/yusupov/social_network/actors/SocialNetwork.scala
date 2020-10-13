@@ -21,6 +21,9 @@ object SocialNetwork {
   case class CreateForm(userId: String, form: UserForm) extends Request
   case class GetForm(userId: String) extends Request
   case class UpdateForm(userId: String, form: UserForm) extends Request
+  case class AddFriend(userId: String, friendId: String) extends Request
+  case class RemoveFriend(userId: String, friendId: String) extends Request
+  case class GetFriends(userId: String) extends Request
 
   sealed trait Response
   case class Users(users: Seq[(String, String, String)]) extends Response
@@ -28,6 +31,8 @@ object SocialNetwork {
   case object FormUpdated extends Response
   case class RequestedForm(form: UserForm) extends Response
   case object InternalError extends Response
+  case object FriendAdded extends Response
+  case object FriendRemoved extends Response
 }
 
 import com.yusupov.social_network.actors.SocialNetwork._
@@ -85,6 +90,40 @@ class SocialNetwork(
           case _ =>
             requester ! InternalError
         }
+
+    case AddFriend(userId, friendId) =>
+      logger.debug(s"Add friend $friendId for $userId")
+      val requester = sender()
+      (database ? Database.AddFriend(userId, friendId))
+        .onComplete {
+          case Success(Database.FriendAdded) =>
+            requester ! FriendAdded
+          case _ =>
+            requester ! InternalError
+        }
+
+    case GetFriends(userId) =>
+      logger.debug(s"Get friends for $userId")
+      val requester = sender()
+      (database ? Database.GetFriends(userId))
+        .onComplete {
+          case Success(Database.Users(users)) =>
+            requester ! Users(users)
+          case _ =>
+            requester ! InternalError
+        }
+
+    case RemoveFriend(userId, friendId) =>
+      logger.debug(s"Remove friend $friendId for $userId")
+      val requester = sender()
+      (database ? Database.RemoveFriend(userId, friendId))
+        .onComplete {
+          case Success(Database.FriendRemoved) =>
+            requester ! FriendRemoved
+          case _ =>
+            requester ! InternalError
+        }
+
 
   }
 }
