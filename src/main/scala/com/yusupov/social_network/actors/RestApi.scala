@@ -13,7 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.yusupov.social_network.actors.Authenticator.{AuthenticatorTag, FailureAuthResponse, SignInSuccessful, SignUpSuccessful}
 import com.yusupov.social_network.actors.SocialNetwork.SocialNetworkTag
 import com.yusupov.social_network.auth.AuthenticatorApi
-import com.yusupov.social_network.data.{Form, JsonMarshaller}
+import com.yusupov.social_network.data.{JsonMarshaller, User, UserForm}
 
 import scala.concurrent.ExecutionContext
 import scala.util.Success
@@ -33,12 +33,13 @@ class RestApi(
 }
 
 trait RestRoutes extends SocialNetworkApi
-  with JsonMarshaller
   with AuthenticatorApi
+  with JsonMarshaller
 {
   def routes: Route = {
-      uiRoute ~
+    uiRoute ~
       authRoute ~
+      usersRoute ~
       formsRoute
   }
 
@@ -49,15 +50,13 @@ trait RestRoutes extends SocialNetworkApi
       pathPrefix("login") {
         indexRoute
       } ~
-      (pathPrefix("signup") | pathPrefix("home")) {
+      (pathPrefix("signup") | pathPrefix("home") | pathPrefix("user_forms") | pathPrefix("edit_form")) {
         extractUnmatchedPath {_ =>
           indexRoute
         }
       } ~
       getFromResourceDirectory("web")
   }
-
-  private def indexRoute: Route = getFromResource("web/index.html")
 
   def authRoute = {
     (pathPrefix("create_user") & post) {
@@ -68,10 +67,10 @@ trait RestRoutes extends SocialNetworkApi
       (pathPrefix("current_session") & optionalCookie("ssid")) {
         case Some(sessionCookie) =>
           onComplete(checkCurrentSession(sessionCookie.value)) {
-            case Success(Authenticator.SessionIsValid) =>
-              complete(StatusCodes.OK)
+            case Success(Authenticator.SessionIsValid(userId)) =>
+              complete(StatusCodes.OK, userId)
             case Success(Authenticator.SessionIsInvalid) =>
-              complete(StatusCodes.NotFound)
+              complete(StatusCodes.Unauthorized, "No current user")
             case _ =>
               complete(StatusCodes.InternalServerError)
           }
@@ -95,6 +94,93 @@ trait RestRoutes extends SocialNetworkApi
       }
   }
 
+  def usersRoute = {
+    (pathPrefix("all_users") & optionalCookie("ssid")) {
+      case Some(sessionCookie) =>
+        onComplete(checkCurrentSession(sessionCookie.value)) {
+          case Success(Authenticator.SessionIsValid(_)) =>
+            onSuccess(getAllUsers) {
+              case SocialNetwork.Users(users) => complete(StatusCodes.Created, users.map(u => User(u._1, u._2)))
+              case _ => complete(StatusCodes.InternalServerError)
+            }
+
+          case Success(Authenticator.SessionIsInvalid) =>
+            complete(StatusCodes.NotFound)
+          case _ =>
+            complete(StatusCodes.InternalServerError)
+        }
+      case None =>
+        complete(StatusCodes.Unauthorized)
+    }
+  }
+
+  def formsRoute = {
+    (pathPrefix("create_form") & post & optionalCookie("ssid")) {
+      case Some(sessionCookie) =>
+        onComplete(checkCurrentSession(sessionCookie.value)) {
+          case Success(Authenticator.SessionIsValid(userId)) =>
+            entity(as[UserForm]) {
+              form =>
+                onSuccess(createForm(userId, form)) {
+                  case SocialNetwork.FormCreated => complete(StatusCodes.Created)
+                  case _ => complete(StatusCodes.InternalServerError)
+                }
+            }
+          case Success(Authenticator.SessionIsInvalid) =>
+            complete(StatusCodes.NotFound)
+          case _ =>
+            complete(StatusCodes.InternalServerError)
+        }
+      case None =>
+        complete(StatusCodes.Unauthorized, "No current user")
+    } ~
+      pathPrefix("get_form" / Segment) { userId =>
+        optionalCookie("ssid") {
+          case Some(sessionCookie) =>
+            onComplete(checkCurrentSession(sessionCookie.value)) {
+              case Success(Authenticator.SessionIsValid(_)) =>
+                onSuccess(getForm(userId)) {
+                  case SocialNetwork.RequestedForm(form) => complete(StatusCodes.Created, form)
+                  case _ => complete(StatusCodes.InternalServerError)
+                }
+              case Success(Authenticator.SessionIsInvalid) =>
+                complete(StatusCodes.NotFound)
+              case _ =>
+                complete(StatusCodes.InternalServerError)
+            }
+          case None =>
+            complete(StatusCodes.Unauthorized, "No current user")
+        }
+      } ~
+      (pathPrefix("update_form" / Segment) & post) { userId =>
+        optionalCookie("ssid") {
+          case Some(sessionCookie) =>
+            onComplete(checkCurrentSession(sessionCookie.value)) {
+              case Success(Authenticator.SessionIsValid(loggedInUserId)) =>
+                if (loggedInUserId != userId) {
+                  complete(StatusCodes.Forbidden, "Editing page of other user is forbidden")
+                } else {
+                  entity(as[UserForm]) {
+                    form =>
+                      onSuccess(updateForm(userId, form)) {
+                        case SocialNetwork.FormUpdated => complete(StatusCodes.OK)
+                        case _ => complete(StatusCodes.InternalServerError)
+                      }
+                  }
+                }
+              case Success(Authenticator.SessionIsInvalid) =>
+                complete(StatusCodes.NotFound)
+              case _ =>
+                complete(StatusCodes.InternalServerError)
+            }
+          case None =>
+            complete(StatusCodes.Unauthorized, "No current user")
+        }
+      }
+  }
+
+  private def indexRoute: Route = getFromResource("web/index.html")
+
   private implicit def marshaller: ToResponseMarshaller[Authenticator.Response] =
     Marshaller.withFixedContentType(ContentTypes.`application/json`) {
       case FailureAuthResponse(statusCode, cause) =>
@@ -103,7 +189,7 @@ trait RestRoutes extends SocialNetworkApi
       case SignUpSuccessful =>
         HttpResponse(StatusCodes.Created)
 
-      case SignInSuccessful(sessionId) =>
+      case SignInSuccessful(sessionId, user) =>
         HttpResponse(
           StatusCodes.OK,
           `Set-Cookie`(
@@ -115,25 +201,10 @@ trait RestRoutes extends SocialNetworkApi
               secure = false,
               httpOnly = true
             )
-          ) :: Nil
+          ) :: Nil,
+          user.email
         )
     }
-
-  def formsRoute = {
-    pathPrefix("form") {
-      pathEndOrSingleSlash {
-        post {
-          entity(as[Form]) {
-            form =>
-              onSuccess(createForm(form)) {
-                case SocialNetwork.FormCreated => complete(StatusCodes.Created)
-                case _ => complete(StatusCodes.InternalServerError)
-              }
-          }
-        }
-      }
-    }
-  }
 
 }
 
@@ -147,8 +218,24 @@ trait SocialNetworkApi extends LazyLogging {
   implicit def executionContext: ExecutionContext
   implicit def requestTimeout: Timeout
 
-  def createForm(form: Form) = {
-    logger.debug(s"API: createForm for ${form.name}")
-    socialNetwork.ask(CreateForm(form)).mapTo[Response]
+  def getAllUsers = {
+    logger.debug(s"API: getting all users")
+    socialNetwork.ask(GetUsers).mapTo[Response]
   }
+
+  def createForm(userId: String, form: UserForm) = {
+    logger.debug(s"API: createForm for ${form.firstName}")
+    socialNetwork.ask(CreateForm(userId, form)).mapTo[Response]
+  }
+
+  def getForm(userId: String) = {
+    logger.debug(s"API: getForm for $userId")
+    socialNetwork.ask(GetForm(userId)).mapTo[Response]
+  }
+
+  def updateForm(userId: String, form: UserForm) = {
+    logger.debug(s"API: updateForm for $userId")
+    socialNetwork.ask(UpdateForm(userId, form)).mapTo[Response]
+  }
+
 }

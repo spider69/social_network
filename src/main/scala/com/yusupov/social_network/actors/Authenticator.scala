@@ -7,6 +7,7 @@ import akka.util.Timeout
 import com.softwaremill.tagging.@@
 import com.typesafe.scalalogging.LazyLogging
 import com.yusupov.social_network.actors.Database.{DatabaseTag, SessionCreated, UserById, UserCreated, UserNotFound}
+import com.yusupov.social_network.data.User
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -27,10 +28,10 @@ object Authenticator {
   case object UserAlreadyExists extends Response
   case object WrongCredentials extends Response
   case object SignUpSuccessful extends Response
-  case object SessionIsValid extends Response
+  case class SessionIsValid(user: String) extends Response
   case object SessionIsInvalid extends Response
   case object SessionInvalidated extends Response
-  case class SignInSuccessful(sessionId: String) extends Response
+  case class SignInSuccessful(sessionId: String, user: User) extends Response
 
   case class FailureAuthResponse(statusCode: StatusCode, cause: String) extends Response
 }
@@ -72,32 +73,30 @@ class Authenticator(
       val requester = sender()
       (database ? Database.GetUserById(email))
         .flatMap {
-          case UserById(_, _, storedPassword) =>
+          case UserById(_, name, storedPassword) =>
             if (storedPassword == password) {
-              database ? Database.CreateSession(email)
+              (database ? Database.CreateSession(email)).map {
+                case SessionCreated(id) =>
+                  requester ! SignInSuccessful(id, User(email, name))
+                case WrongCredentials =>
+                  requester ! FailureAuthResponse(StatusCodes.Unauthorized, "Wrong credentials")
+                case _ =>
+                  requester ! FailureAuthResponse(StatusCodes.InternalServerError, "Internal error")
+              }
             } else {
-              Future.successful(WrongCredentials)
+              Future.successful(requester ! FailureAuthResponse(StatusCodes.Unauthorized, "Wrong credentials"))
             }
           case UserNotFound =>
-            Future.successful(WrongCredentials)
-        }.onComplete {
-        case Success(SessionCreated(id)) =>
-          requester ! SignInSuccessful(id)
-        case Success(WrongCredentials) =>
-          requester ! FailureAuthResponse(StatusCodes.Unauthorized, "Wrong credentials")
-        case Failure(e) =>
-          requester ! FailureAuthResponse(StatusCodes.InternalServerError, e.getMessage)
-        case _ =>
-          requester ! FailureAuthResponse(StatusCodes.InternalServerError, "Internal error")
-      }
+            Future.successful(requester ! FailureAuthResponse(StatusCodes.Unauthorized, "Wrong credentials"))
+        }
 
     case CheckSession(sessionId) =>
       logger.debug(s"Checking session $sessionId")
       val requester = sender()
       (database ? Database.CheckSession(sessionId))
         .onComplete {
-          case Success(Database.SessionIsValid) =>
-            requester ! SessionIsValid
+          case Success(Database.SessionIsValid(userId)) =>
+            requester ! SessionIsValid(userId)
           case Success(Database.SessionIsInvalid) =>
             requester ! SessionIsInvalid
           case Failure(e) =>

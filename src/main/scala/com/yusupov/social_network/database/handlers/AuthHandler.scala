@@ -13,8 +13,8 @@ class AuthHandler[T <: JdbcProfile](databaseProvider: DatabaseProvider[T]) {
     sqlu"INSERT INTO Sessions(id,user_id) VALUES('#$sessionId','#$userId')"
 
   def getSession(sessionId: String) =
-    sql"SELECT id FROM Sessions WHERE id='#$sessionId' LIMIT 1"
-      .as[String]
+    sql"SELECT id,user_id FROM Sessions WHERE id='#$sessionId' LIMIT 1"
+      .as[(String, String)]
 
   def deleteSession(sessionId: String) =
     sqlu"DELETE FROM Sessions WHERE id='#$sessionId'"

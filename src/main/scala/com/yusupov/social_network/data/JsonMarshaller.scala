@@ -4,6 +4,6 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import spray.json.DefaultJsonProtocol
 
 trait JsonMarshaller extends SprayJsonSupport with DefaultJsonProtocol {
-  implicit val formMarshaller = jsonFormat6(Form)
-  implicit val credentialsMarshaller = jsonFormat2(Credentials)
+  implicit val formMarshaller = jsonFormat6(UserForm)
+  implicit val userMarshaller = jsonFormat2(User)
 }
