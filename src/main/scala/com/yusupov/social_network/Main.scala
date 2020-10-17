@@ -36,7 +36,7 @@ object Main extends App
   implicit val system = ActorSystem()
   implicit val ec = system.dispatcher
 
-  val api = new RestApi(system, requestTimeout, socialNetwork, authenticator).routes
+  val api = new RestApi(system, requestTimeout, authenticator, formsManager, friendsManager).routes
 
   implicit val materializer = Materializer(system)
   val bindingFuture = Http().newServerAt(host, port).bind(api)
