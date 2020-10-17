@@ -1,10 +1,7 @@
 package com.yusupov.social_network.actors
 
-import java.util.UUID
-
 import akka.actor.Actor
 import com.typesafe.scalalogging.LazyLogging
-import com.yusupov.social_network.actors.Database.CreateForm
 import com.yusupov.social_network.data.UserForm
 import com.yusupov.social_network.database.DatabaseProvider
 import com.yusupov.social_network.database.handlers.{AuthHandler, FormsHandler, FriendsHandler, UsersHandler}
@@ -50,104 +47,29 @@ object Database {
   case object FriendRemoved
 }
 
-import com.yusupov.social_network.actors.Database._
-
 class Database[T <: JdbcProfile](
   databaseProvider: DatabaseProvider[T]
 ) extends Actor
   with LazyLogging
 {
 
-  val authHandler = new AuthHandler[T](databaseProvider)
-  val usersHandler = new UsersHandler[T](databaseProvider)
   val formsHandler = new FormsHandler[T](databaseProvider)
+  val authHandler = new AuthHandler[T](databaseProvider, formsHandler)
+  val usersHandler = new UsersHandler[T](databaseProvider)
   val friendsHandler = new FriendsHandler[T](databaseProvider)
 
+  val handlers = List(
+    authHandler,
+    formsHandler,
+    usersHandler,
+    friendsHandler
+  )
+
   override def receive: Receive = {
-    case GetUserById(id) =>
-      logger.debug(s"Getting user by id: $id")
-      val query = authHandler.getUser(id)
-      val result = databaseProvider.exec(query)
-      result match {
-        case Vector(user, _*) => sender() ! UserById(user._1, user._2, user._3)
-        case _ => sender() ! UserNotFound
-      }
-
-    case CreateUser(email, name, password) =>
-      logger.debug(s"Creating user $name")
-      val createUser = authHandler.createUser(email, name, password)
-      val createDefaultForm = formsHandler.createForm(email, UserForm(firstName = name))
-      databaseProvider.exec(
-        createUser.andThen(createDefaultForm)
-      )
-      sender() ! UserCreated
-
-    case CreateSession(userId) =>
-      logger.debug(s"Creating session for $userId")
-      val sessionId = UUID.randomUUID().toString
-      val query = authHandler.createSession(sessionId, userId)
-      databaseProvider.exec(query)
-      sender() ! SessionCreated(sessionId)
-
-    case CheckSession(sessionId) =>
-      logger.debug(s"Checking session $sessionId")
-      val query = authHandler.getSession(sessionId)
-      val result = databaseProvider.exec(query)
-      result match {
-        case Vector((_, userId), _*) => sender() ! SessionIsValid(userId)
-        case _ => sender() ! SessionIsInvalid
-      }
-
-    case DeleteSession(sessionId) =>
-      logger.debug(s"Deleting session $sessionId")
-      val query = authHandler.deleteSession(sessionId)
-      databaseProvider.exec(query)
-      sender() ! SessionDeleted
-
-    case GetUsers(filterExpr) =>
-      logger.debug("Getting users")
-      val query = usersHandler.getUsers(filterExpr)
-      val result = databaseProvider.exec(query)
-      sender() ! Users(result)
-
-    case CreateForm(userId, form) =>
-      logger.debug(s"Creating form for $userId")
-      val query = formsHandler.createForm(userId, form)
-      databaseProvider.exec(query)
-      sender() ! FormCreated
-
-    case GetForm(userId) =>
-      logger.debug(s"Getting form for $userId")
-      val query = formsHandler.getForm(userId)
-      val result = databaseProvider.exec(query)
-      result match {
-        case Vector((firstName, lastName, age, gender, interests, city), _*) => sender() ! RequestedForm(UserForm(firstName, lastName, age, gender, interests, city))
-        case _ => sender() ! FormNotFound
-      }
-
-    case UpdateForm(userId, form) =>
-      logger.debug(s"Updating form for $userId")
-      val query = formsHandler.updateForm(userId, form)
-      databaseProvider.exec(query)
-      sender() ! FormUpdated
-
-    case AddFriend(userId, friendId) =>
-      logger.debug(s"Add friend $friendId for $userId")
-      val query = friendsHandler.addFriend(userId, friendId).andThen(friendsHandler.addFriend(friendId, userId))
-      databaseProvider.exec(query)
-      sender() ! FriendAdded
-
-    case GetFriends(userId) =>
-      logger.debug(s"Get friends of $userId")
-      val query = friendsHandler.getFriends(userId)
-      val result = databaseProvider.exec(query)
-      sender() ! Users(result)
-
-    case RemoveFriend(userId, friendId) =>
-      logger.debug(s"Remove friend $friendId for $userId")
-      val query = friendsHandler.removeFriend(userId, friendId).andThen(friendsHandler.removeFriend(friendId, userId))
-      databaseProvider.exec(query)
-      sender() ! FriendRemoved
-
+    case msg =>
+      val requester = sender()
+      val handler = handlers.map(_.handle(requester)).reduceLeft(_ orElse _)
+      handler(msg)
   }
+
 }
