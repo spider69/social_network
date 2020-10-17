@@ -26,7 +26,6 @@ export default function UserForms() {
                     .then(handleErrors)
                     .then(response => response.json())
                 setFriends(requestedFriends)
-                console.log(requestedFriends)
             } catch (e) {
                 onError(e);
             }

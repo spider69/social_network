@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ListGroup, ListGroupItem, Form, FormControl, Button } from "react-bootstrap";
+import { ListGroup, ListGroupItem, Form, FormControl } from "react-bootstrap";
 import { LinkContainer } from "react-router-bootstrap";
 import { useAppContext } from "../libs/contextLib";
 import { handleErrors, onError } from "../libs/errorLib";
@@ -45,27 +45,29 @@ export default function Users() {
     );
   }
 
-  async function onSearch() {
-    try {
-      let filteredUsers = await fetch(`http://localhost:8080/all_users/?filter=${searchQuery}`)
-        .then(handleErrors)
-        .then(response => response.json())
-      setUsers(filteredUsers)
-    } catch (e) {
-      onError(e);
-    }
-  }
-
   function handleChangeSearchQuery(e) {
     setSearchQuery(e.target.value)
+  }
+
+  async function onKeyPressHandler(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      try {
+        let filteredUsers = await fetch(`http://localhost:8080/all_users/?filter=${searchQuery}`)
+          .then(handleErrors)
+          .then(response => response.json())
+        setUsers(filteredUsers)
+      } catch (e) {
+        onError(e);
+      }
+    }
   }
 
   function renderUsers() {
     return (
       <div className="users">
         <Form inline>
-          <FormControl type="text" placeholder="Search" className="mr-sm-2" onChange={handleChangeSearchQuery} />
-          <Button variant="outline-info" onClick={() => onSearch()}>Search</Button>
+          <FormControl type="text" placeholder="Search" className="mr-sm-2" onChange={handleChangeSearchQuery} onKeyPress={onKeyPressHandler} />
         </Form>
         <ListGroup variant="flush">
           {!isLoading && renderUsersList(users)}
