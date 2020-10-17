@@ -1,36 +1,32 @@
-.user-deets {
-    text-align: left;
-  }
+.form {
+  text-align: left;
+}
   
-  .user-deets img {
-    margin-bottom: 20px;
-    border-radius: 10px;
-    width: 200px;
-  }
-  
-  .user-deets a {
-    text-decoration: none;
-    color: #40a8f3;
-    transition: 0.3s ease color;
-  }
-  
-  .user-deets a:hover {
-    text-decoration: underline;
-  }
-  
-  .user-deets h3 {
-    font-size: 50px;
-    margin: 0 0 20px;
-  }
+.form h3 {
+  font-size: 50px;
+  margin: 0 0 20px;
+}
 
-  .user-deets h2 {
-    font-size: 25px;
-    margin: 0 0 12px;
-  }
+.form h2 {
+  font-size: 25px;
+  margin: 0 0 12px;
+}
   
-  .user-deets strong {
-    display: block;
-    font-size: 30px;
-    opacity: 0.4;
-    margin-bottom: 6px;
-  }
+.form strong {
+  display: block;
+  font-size: 30px;
+  opacity: 0.4;
+  margin-bottom: 6px;
+}
+
+.info {
+  display:flex;
+}
+
+.left {
+  width:33.33vw;
+}
+
+.right {
+  width:33.33vw;
+}

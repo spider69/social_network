@@ -71,9 +71,9 @@ export default function UserForms() {
     }
 
     return (
-        <div className="UserForms">
+        <div className="form">
             {form && (
-                <div className="user-deets">
+                <div>
                     <h3>
                         {form.firstName} {form.lastName}
                     </h3>
@@ -84,24 +84,30 @@ export default function UserForms() {
                             :
                             <Button variant="danger" onClick={() => onRemoveFriend()} className="px-4">Remove friend</Button>
                     }
-                    <h2>
-                        <strong>Age</strong> {form.age}
-                    </h2>
-                    <h2>
-                        <strong>Gender</strong> {form.gender}
-                    </h2>
-                    <h2>
-                        <strong>Interests</strong> {form.interests}
-                    </h2>
-                    <h2>
-                        <strong>City</strong> {form.city}
-                    </h2>
-                    <h2>
-                        <strong>Friends</strong>
-                        <ListGroup variant="flush">
-                            {renderFriendsList(friends)}
-                        </ListGroup>
-                    </h2>
+                    <div class="info">
+                        <div class="left">
+                            <h2>
+                                <strong>Age</strong> {form.age}
+                            </h2>
+                            <h2>
+                                <strong>Gender</strong> {form.gender}
+                            </h2>
+                            <h2>
+                                <strong>Interests</strong> {form.interests}
+                            </h2>
+                            <h2>
+                                <strong>City</strong> {form.city}
+                            </h2>
+                        </div>
+                        <div class="right">
+                            <h2>
+                                <strong>Friends</strong>
+                                <ListGroup variant="flush">
+                                    {renderFriendsList(friends)}
+                                </ListGroup>
+                            </h2>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
