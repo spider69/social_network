@@ -27,7 +27,7 @@ function App() {
   useEffect(() => {
     async function onLoad() {
       try {
-        let id = await fetch('http://localhost:8080/current_session')
+        let id = await fetch('https://localhost:8080/current_session')
           .then(handleCurrentSessionResponse)
         setUserId(id);
       }
@@ -48,7 +48,7 @@ function App() {
   }
 
   async function handleLogout() {
-    await fetch('http://localhost:8080/sign_out').then(handleErrors);
+    await fetch('https://localhost:8080/sign_out').then(handleErrors);
     setUserId(null);
     history.push("/login");
   }
