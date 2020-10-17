@@ -25,6 +25,8 @@ libraryDependencies ++= {
     "mysql" % "mysql-connector-java" % "8.0.21",
     "com.typesafe.slick" %% "slick" % "3.3.3",
     "com.typesafe.slick" %% "slick-hikaricp" % "3.3.3",
-    "org.flywaydb" % "flyway-core" % "7.0.0"
+    "org.flywaydb" % "flyway-core" % "7.0.0",
+
+    "commons-codec" % "commons-codec" % "1.15"
   )
 }

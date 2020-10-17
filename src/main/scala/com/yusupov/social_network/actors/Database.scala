@@ -30,7 +30,7 @@ object Database {
 
   // responses
   case class Users(users: Seq[(String, String, String)])
-  case class UserById(id: String, name: String, password: String)
+  case class UserById(id: String, name: String, passwordHash: String, salt: String)
   case object UserNotFound
   case object UserCreated
   case class SessionCreated(sessionId: String)

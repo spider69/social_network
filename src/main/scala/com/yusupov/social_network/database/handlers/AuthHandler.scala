@@ -7,6 +7,8 @@ import com.typesafe.scalalogging.LazyLogging
 import com.yusupov.social_network.actors.Database.{CheckSession, CreateSession, CreateUser, DeleteSession, GetUserById, SessionCreated, SessionDeleted, SessionIsInvalid, SessionIsValid, UserById, UserCreated, UserNotFound}
 import com.yusupov.social_network.data.UserForm
 import com.yusupov.social_network.database.DatabaseProvider
+import com.yusupov.social_network.utils.HexUtils.bytesToHex
+import com.yusupov.social_network.utils.SecurityUtils
 import slick.jdbc.JdbcProfile
 
 class AuthHandler[T <: JdbcProfile](
@@ -15,8 +17,8 @@ class AuthHandler[T <: JdbcProfile](
 ) extends Handler with LazyLogging {
   import databaseProvider.profile.api._
 
-  def createUser(email: String, name: String, password: String) =
-    sqlu"INSERT INTO Users(id,name,password) VALUES('#$email','#$name','#$password')"
+  def createUser(email: String, name: String, passwordHash: String, salt: String) =
+    sqlu"INSERT INTO Users(id,name,password_hash,salt) VALUES('#$email','#$name','#$passwordHash', UNHEX('#$salt'))"
 
   def createSession(sessionId: String, userId: String) =
     sqlu"INSERT INTO Sessions(id,user_id) VALUES('#$sessionId','#$userId')"
@@ -29,8 +31,8 @@ class AuthHandler[T <: JdbcProfile](
     sqlu"DELETE FROM Sessions WHERE id='#$sessionId'"
 
   def getUser(id: String) =
-    sql"SELECT id,name,password FROM Users WHERE id='#$id' LIMIT 1"
-      .as[(String,String,String)]
+    sql"SELECT id,name,password_hash,HEX(salt) FROM Users WHERE id='#$id' LIMIT 1"
+      .as[(String,String,String,String)]
 
   override def handle(sender: ActorRef) = {
     case GetUserById(id) =>
@@ -38,13 +40,15 @@ class AuthHandler[T <: JdbcProfile](
       val query = getUser(id)
       val result = databaseProvider.exec(query)
       result match {
-        case Vector(user, _*) => sender ! UserById(user._1, user._2, user._3)
+        case Vector(user, _*) => sender ! UserById(user._1, user._2, user._3, user._4)
         case _ => sender ! UserNotFound
       }
 
     case CreateUser(email, name, password) =>
       logger.debug(s"Creating user $name")
-      val createUserQuery = createUser(email, name, password)
+      val salt = SecurityUtils.generateSalt()
+      val passwordHash = SecurityUtils.passwordHash(password, salt)
+      val createUserQuery = createUser(email, name, passwordHash, bytesToHex(salt))
       val createDefaultFormQuery = formsHandler.createForm(email, UserForm(firstName = name))
       databaseProvider.exec(
         createUserQuery.andThen(createDefaultFormQuery)

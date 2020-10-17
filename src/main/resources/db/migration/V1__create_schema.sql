@@ -1,7 +1,8 @@
 create table Users(
     id varchar(100) not null PRIMARY KEY,
     name varchar(100) not null,
-    password varchar(100) not null
+    password_hash varchar(255) not null,
+    salt binary(64) not null
 );
 
 create table Sessions(

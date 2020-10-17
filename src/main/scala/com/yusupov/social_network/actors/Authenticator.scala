@@ -7,6 +7,8 @@ import akka.util.Timeout
 import com.softwaremill.tagging.@@
 import com.typesafe.scalalogging.LazyLogging
 import com.yusupov.social_network.actors.Database.{DatabaseTag, SessionCreated, UserById, UserCreated, UserNotFound}
+import com.yusupov.social_network.utils.HexUtils.hexToBytes
+import com.yusupov.social_network.utils.SecurityUtils
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -52,7 +54,7 @@ class Authenticator(
       val requester = sender()
       (database ? Database.GetUserById(email))
         .flatMap {
-          case UserById(_, _, _) =>
+          case UserById(_, _, _, _) =>
             Future.successful(UserAlreadyExists)
           case UserNotFound =>
             database ? Database.CreateUser(email, userName, password)
@@ -72,8 +74,8 @@ class Authenticator(
       val requester = sender()
       (database ? Database.GetUserById(email))
         .flatMap {
-          case UserById(_, _, storedPassword) =>
-            if (storedPassword == password) {
+          case UserById(_, _, storedPasswordHash, salt) =>
+            if (SecurityUtils.checkPassword(password, hexToBytes(salt), storedPasswordHash)) {
               (database ? Database.CreateSession(email)).map {
                 case SessionCreated(id) =>
                   requester ! SignInSuccessful(id, email)
