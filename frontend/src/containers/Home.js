@@ -10,8 +10,8 @@ export default function Home() {
   function renderLander() {
     return (
       <div className="lander">
-        <h1>Honey cat's social network</h1>
-        <p>Meow meow meow</p>
+        <h1>Pavel Yusupov's social network</h1>
+        <p>Click sign up to register</p>
       </div>
     );
   }

@@ -57,7 +57,7 @@ function App() {
     !isAuthenticating &&
     <div className="App container">
       <Navbar expand="lg" bg="dark" variant="dark">
-        <Navbar.Brand href="/"><h1>Honey cat socials</h1></Navbar.Brand>
+        <Navbar.Brand href="/"><h1>Pavel's socials</h1></Navbar.Brand>
         <Nav className="mr-auto">
           {userId
             ? <>
