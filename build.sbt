@@ -27,6 +27,7 @@ lazy val backend = (project in file("."))
         "com.softwaremill.macwire" %% "proxy" % macWireVersion,
 
         "mysql" % "mysql-connector-java" % "8.0.21",
+        "org.postgresql" % "postgresql" % "42.2.18",
         "com.typesafe.slick" %% "slick" % "3.3.3",
         "com.typesafe.slick" %% "slick-hikaricp" % "3.3.3",
         "org.flywaydb" % "flyway-core" % "7.0.0",

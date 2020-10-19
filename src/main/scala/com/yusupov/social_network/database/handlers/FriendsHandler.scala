@@ -10,7 +10,7 @@ class FriendsHandler[T <: JdbcProfile](databaseProvider: DatabaseProvider[T]) ex
   import databaseProvider.profile.api._
 
   def addFriend(userId: String, friendId: String) =
-    sqlu"INSERT INTO Friends SET user_id='#$userId', friend_id='#$friendId'"
+    sqlu"INSERT INTO Friends(user_id, friend_id) VALUES ('#$userId','#$friendId')"
 
   def removeFriend(userId: String, friendId: String) =
     sqlu"DELETE FROM Friends WHERE user_id='#$userId' AND friend_id='#$friendId'"
