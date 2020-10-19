@@ -18,7 +18,7 @@ class AuthHandler[T <: JdbcProfile](
   import databaseProvider.profile.api._
 
   def createUser(email: String, name: String, passwordHash: String, salt: String) =
-    sqlu"INSERT INTO Users(id,name,password_hash,salt) VALUES('#$email','#$name','#$passwordHash', UNHEX('#$salt'))"
+    sqlu"INSERT INTO Users(id,name,password_hash,salt) VALUES('#$email','#$name','#$passwordHash', #${databaseProvider.unhex(salt)})"
 
   def createSession(sessionId: String, userId: String) =
     sqlu"INSERT INTO Sessions(id,user_id) VALUES('#$sessionId','#$userId')"
@@ -31,7 +31,7 @@ class AuthHandler[T <: JdbcProfile](
     sqlu"DELETE FROM Sessions WHERE id='#$sessionId'"
 
   def getUser(id: String) =
-    sql"SELECT id,name,password_hash,HEX(salt) FROM Users WHERE id='#$id' LIMIT 1"
+    sql"SELECT id,name,password_hash,#${databaseProvider.hex("salt")} FROM Users WHERE id='#$id' LIMIT 1"
       .as[(String,String,String,String)]
 
   override def handle(sender: ActorRef) = {

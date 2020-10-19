@@ -24,7 +24,6 @@ object Main extends App
   implicit val materializer = Materializer(system)
   implicit val ec = system.dispatcher
 
-  val config = ConfigFactory.load()
   val requestTimeout = getRequestTimeout
 
   val host = config.getString("service-settings.host")
@@ -71,10 +70,11 @@ object Main extends App
     Flyway
       .configure()
       .baselineOnMigrate(true)
+      .locations(s"classpath:/db/migration/${config.getString("database.type")}sql")
       .dataSource(
-        config.getString("database.properties.url"),
-        config.getString("database.properties.user"),
-        config.getString("database.properties.password")
+        config.getString("database.url"),
+        config.getString("database.user"),
+        config.getString("database.password")
       )
       .load()
       .migrate()
