@@ -14,7 +14,7 @@ trait DatabaseModule {
 
   implicit def system: ActorSystem
 
-  val config = ConfigFactory.load()
+  val config = ConfigFactory.load().resolve()
   val dbType = config.getString("database.type")
 
   lazy val database = dbType match {
