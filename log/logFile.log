@@ -1,0 +1,61 @@
+[2020-10-21 00:10:49,915] INFO  [o.f.c.i.license.VersionPrinter] [] Flyway Community Edition 7.0.0 by Redgate
+[2020-10-21 00:10:50,008] INFO  [o.f.c.i.database.base.DatabaseType] [] Database: jdbc:postgresql://127.0.0.1:5432/social_network (PostgreSQL 13.0)
+[2020-10-21 00:10:50,021] WARN  [o.f.c.i.database.base.Database] [] Flyway upgrade recommended: org.flywaydb.core.internal.database.postgresql.PostgreSQLDatabaseType@41c89d2f 13.0 is newer than this version of Flyway and support has not been tested. The latest supported version of org.flywaydb.core.internal.database.postgresql.PostgreSQLDatabaseType@41c89d2f is 12.
+[2020-10-21 00:10:50,053] INFO  [o.f.core.internal.command.DbValidate] [] Successfully validated 1 migration (execution time 00:00.022s)
+[2020-10-21 00:10:50,068] INFO  [o.f.core.internal.command.DbMigrate] [] Current version of schema "public": 1
+[2020-10-21 00:10:50,069] INFO  [o.f.core.internal.command.DbMigrate] [] Schema "public" is up to date. No migration necessary.
+[2020-10-21 00:10:50,197] INFO  [com.zaxxer.hikari.HikariDataSource] [] database.postgres - Starting...
+[2020-10-21 00:10:50,208] INFO  [com.zaxxer.hikari.HikariDataSource] [] database.postgres - Start completed.
+[2020-10-21 00:10:51,304] INFO  [com.yusupov.social_network.Main$] [] RestApi bounds to /127.0.0.1:5000
+[2020-10-21 00:12:54,250] INFO  [o.f.c.i.license.VersionPrinter] [] Flyway Community Edition 7.0.0 by Redgate
+[2020-10-21 00:12:54,337] INFO  [o.f.c.i.database.base.DatabaseType] [] Database: jdbc:postgresql://127.0.0.1:5432/social_network (PostgreSQL 13.0)
+[2020-10-21 00:12:54,349] WARN  [o.f.c.i.database.base.Database] [] Flyway upgrade recommended: org.flywaydb.core.internal.database.postgresql.PostgreSQLDatabaseType@2a3a299 13.0 is newer than this version of Flyway and support has not been tested. The latest supported version of org.flywaydb.core.internal.database.postgresql.PostgreSQLDatabaseType@2a3a299 is 12.
+[2020-10-21 00:12:54,380] INFO  [o.f.core.internal.command.DbValidate] [] Successfully validated 1 migration (execution time 00:00.021s)
+[2020-10-21 00:12:54,394] INFO  [o.f.core.internal.command.DbMigrate] [] Current version of schema "public": 1
+[2020-10-21 00:12:54,395] INFO  [o.f.core.internal.command.DbMigrate] [] Schema "public" is up to date. No migration necessary.
+[2020-10-21 00:12:54,521] INFO  [com.zaxxer.hikari.HikariDataSource] [] database.postgres - Starting...
+[2020-10-21 00:12:54,533] INFO  [com.zaxxer.hikari.HikariDataSource] [] database.postgres - Start completed.
+[2020-10-21 00:12:55,647] INFO  [com.yusupov.social_network.Main$] [] RestApi bounds to /127.0.0.1:8080
+[2020-10-21 00:13:11,700] DEBUG [c.y.social_network.actors.RestApi] [] API: signUp for yusalar69@gmail.com
+[2020-10-21 00:13:11,701] DEBUG [c.y.s.actors.Authenticator] [] Signing in for yusalar69@gmail.com
+[2020-10-21 00:13:11,704] DEBUG [c.y.s.database.handlers.AuthHandler] [] Getting user by id: yusalar69@gmail.com
+[2020-10-21 00:13:11,763] DEBUG [c.y.s.database.handlers.AuthHandler] [] Creating session for yusalar69@gmail.com
+[2020-10-21 00:13:11,798] DEBUG [c.y.social_network.actors.RestApi] [] API: checkCurrentSession 23600f9e-49b8-4781-a3fd-aa1e8e101c48
+[2020-10-21 00:13:11,799] DEBUG [c.y.s.actors.Authenticator] [] Checking session 23600f9e-49b8-4781-a3fd-aa1e8e101c48
+[2020-10-21 00:13:11,799] DEBUG [c.y.s.database.handlers.AuthHandler] [] Checking session 23600f9e-49b8-4781-a3fd-aa1e8e101c48
+[2020-10-21 00:13:11,811] DEBUG [c.y.social_network.actors.RestApi] [] API: getForm for yusalar69@gmail.com
+[2020-10-21 00:13:11,812] DEBUG [c.y.s.actors.FormsManager] [] Getting form by yusalar69@gmail.com
+[2020-10-21 00:13:11,813] DEBUG [c.y.s.database.handlers.FormsHandler] [] Getting form for yusalar69@gmail.com
+[2020-10-21 00:13:11,828] DEBUG [c.y.social_network.actors.RestApi] [] API: checkCurrentSession 23600f9e-49b8-4781-a3fd-aa1e8e101c48
+[2020-10-21 00:13:11,828] DEBUG [c.y.s.actors.Authenticator] [] Checking session 23600f9e-49b8-4781-a3fd-aa1e8e101c48
+[2020-10-21 00:13:11,829] DEBUG [c.y.s.database.handlers.AuthHandler] [] Checking session 23600f9e-49b8-4781-a3fd-aa1e8e101c48
+[2020-10-21 00:13:11,830] DEBUG [c.y.social_network.actors.RestApi] [] API: checkCurrentSession 23600f9e-49b8-4781-a3fd-aa1e8e101c48
+[2020-10-21 00:13:11,830] DEBUG [c.y.s.actors.Authenticator] [] Checking session 23600f9e-49b8-4781-a3fd-aa1e8e101c48
+[2020-10-21 00:13:11,832] DEBUG [c.y.s.database.handlers.AuthHandler] [] Checking session 23600f9e-49b8-4781-a3fd-aa1e8e101c48
+[2020-10-21 00:13:11,832] DEBUG [c.y.social_network.actors.RestApi] [] API: getForm for yusalar69@gmail.com
+[2020-10-21 00:13:11,832] DEBUG [c.y.s.actors.FormsManager] [] Getting form by yusalar69@gmail.com
+[2020-10-21 00:13:11,834] DEBUG [c.y.s.database.handlers.FormsHandler] [] Getting form for yusalar69@gmail.com
+[2020-10-21 00:13:11,835] DEBUG [c.y.social_network.actors.RestApi] [] API: get friends of yusalar69@gmail.com
+[2020-10-21 00:13:11,837] DEBUG [c.y.s.actors.FriendsManager] [] Get friends for yusalar69@gmail.com
+[2020-10-21 00:13:11,838] DEBUG [c.y.s.d.handlers.FriendsHandler] [] Get friends of yusalar69@gmail.com
+[2020-10-21 00:13:11,848] DEBUG [c.y.social_network.actors.RestApi] [] API: checkCurrentSession 23600f9e-49b8-4781-a3fd-aa1e8e101c48
+[2020-10-21 00:13:11,848] DEBUG [c.y.s.actors.Authenticator] [] Checking session 23600f9e-49b8-4781-a3fd-aa1e8e101c48
+[2020-10-21 00:13:11,848] DEBUG [c.y.s.database.handlers.AuthHandler] [] Checking session 23600f9e-49b8-4781-a3fd-aa1e8e101c48
+[2020-10-21 00:13:11,851] DEBUG [c.y.social_network.actors.RestApi] [] API: get friends of yusalar69@gmail.com
+[2020-10-21 00:13:11,852] DEBUG [c.y.s.actors.FriendsManager] [] Get friends for yusalar69@gmail.com
+[2020-10-21 00:13:11,852] DEBUG [c.y.s.d.handlers.FriendsHandler] [] Get friends of yusalar69@gmail.com
+[2020-10-21 00:13:18,307] DEBUG [c.y.social_network.actors.RestApi] [] API: checkCurrentSession 23600f9e-49b8-4781-a3fd-aa1e8e101c48
+[2020-10-21 00:13:18,307] DEBUG [c.y.s.actors.Authenticator] [] Checking session 23600f9e-49b8-4781-a3fd-aa1e8e101c48
+[2020-10-21 00:13:18,307] DEBUG [c.y.s.database.handlers.AuthHandler] [] Checking session 23600f9e-49b8-4781-a3fd-aa1e8e101c48
+[2020-10-21 00:13:18,322] DEBUG [c.y.social_network.actors.RestApi] [] API: checkCurrentSession 23600f9e-49b8-4781-a3fd-aa1e8e101c48
+[2020-10-21 00:13:18,322] DEBUG [c.y.s.actors.Authenticator] [] Checking session 23600f9e-49b8-4781-a3fd-aa1e8e101c48
+[2020-10-21 00:13:18,322] DEBUG [c.y.s.database.handlers.AuthHandler] [] Checking session 23600f9e-49b8-4781-a3fd-aa1e8e101c48
+[2020-10-21 00:13:18,325] DEBUG [c.y.social_network.actors.RestApi] [] API: getForm for yusalar69@gmail.com
+[2020-10-21 00:13:18,325] DEBUG [c.y.s.actors.FormsManager] [] Getting form by yusalar69@gmail.com
+[2020-10-21 00:13:18,326] DEBUG [c.y.s.database.handlers.FormsHandler] [] Getting form for yusalar69@gmail.com
+[2020-10-21 00:13:18,334] DEBUG [c.y.social_network.actors.RestApi] [] API: checkCurrentSession 23600f9e-49b8-4781-a3fd-aa1e8e101c48
+[2020-10-21 00:13:18,334] DEBUG [c.y.s.actors.Authenticator] [] Checking session 23600f9e-49b8-4781-a3fd-aa1e8e101c48
+[2020-10-21 00:13:18,334] DEBUG [c.y.s.database.handlers.AuthHandler] [] Checking session 23600f9e-49b8-4781-a3fd-aa1e8e101c48
+[2020-10-21 00:13:18,337] DEBUG [c.y.social_network.actors.RestApi] [] API: get friends of yusalar69@gmail.com
+[2020-10-21 00:13:18,337] DEBUG [c.y.s.actors.FriendsManager] [] Get friends for yusalar69@gmail.com
+[2020-10-21 00:13:18,337] DEBUG [c.y.s.d.handlers.FriendsHandler] [] Get friends of yusalar69@gmail.com
