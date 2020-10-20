@@ -48,7 +48,7 @@ export default function Signup() {
             formData.append('email', fields.email)
             formData.append('userName', fields.userName)
             formData.append('password', fields.password)
-            await fetch('https://localhost:8080/create_user', {
+            await fetch('http://localhost:8080/create_user', {
                 method: 'POST',
                 body: formData
             }).then(handleSignUpResponse)

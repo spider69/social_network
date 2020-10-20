@@ -5,7 +5,6 @@ import java.security.{KeyStore, SecureRandom}
 import akka.actor.ActorSystem
 import akka.http.scaladsl.{ConnectionContext, Http}
 import akka.stream.Materializer
-import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
 import com.yusupov.social_network.actors.RestApi
 import com.yusupov.social_network.injection.ServiceModule
@@ -28,6 +27,7 @@ object Main extends App
 
   val host = config.getString("service-settings.host")
   val port = config.getInt("service-settings.port")
+  val useHttps = config.getBoolean("service-settings.use-https")
 
   performMigration()
 
@@ -42,8 +42,12 @@ object Main extends App
 
   private def startServer() = {
     val api = new RestApi(system, requestTimeout, authenticator, formsManager, friendsManager).routes
-    val httpsContext = createHttpsContext()
-    Http().newServerAt(host, port).enableHttps(httpsContext).bind(api)
+    if (useHttps) {
+      val httpsContext = createHttpsContext()
+      Http().newServerAt(host, port).enableHttps(httpsContext).bind(api)
+    } else {
+      Http().newServerAt(host, port).bind(api)
+    }
   }
 
   private def createHttpsContext() = {

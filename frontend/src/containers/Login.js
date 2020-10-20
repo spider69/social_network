@@ -42,7 +42,7 @@ export default function Login() {
             let formData = new FormData()
             formData.append('login', fields.email)
             formData.append('password', fields.password)
-            let userId = await fetch('https://localhost:8080/sign_in', {
+            let userId = await fetch('http://localhost:8080/sign_in', {
                 method: 'POST',
                 body: formData
             }).then(handleLoginResponse)
