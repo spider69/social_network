@@ -13,6 +13,7 @@ import org.flywaydb.core.Flyway
 
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.reflect.io.File
+import scala.util.Properties
 
 object Main extends App
   with ServiceModule
@@ -26,7 +27,7 @@ object Main extends App
   val requestTimeout = getRequestTimeout
 
   val host = config.getString("service-settings.host")
-  val port = config.getInt("service-settings.port")
+  val port = Properties.envOrElse("PORT", config.getInt("service-settings.port").toString).toInt
   val useHttps = config.getBoolean("service-settings.use-https")
 
   performMigration()
