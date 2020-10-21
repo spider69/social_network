@@ -11,6 +11,7 @@ import EditForm from "./containers/EditForm";
 import Users from "./containers/Users"
 
 export default function Routes() {
+    console.log(window.location)
     return (
         <Switch>
             <Route exact path="/">

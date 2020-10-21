@@ -4,6 +4,7 @@ import { useAppContext } from "../libs/contextLib";
 import "./Home.css";
 
 export default function Home() {
+  console.log(window.location)
   const history = useHistory();
   const { userId } = useAppContext();
 

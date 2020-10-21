@@ -27,7 +27,7 @@ function App() {
     async function onLoad() {
       try {
         console.log(window.location)
-        let id = await fetch(`http://localhost:${window.location.port}/current_session`)
+        let id = await fetch(`${window.location.origin}/current_session`)
           .then(handleCurrentSessionResponse)
         setUserId(id);
       }
@@ -48,7 +48,7 @@ function App() {
   }
 
   async function handleLogout() {
-    await fetch(`http://localhost:${window.location.port}/sign_out`).then(handleErrors);
+    await fetch(`${window.location.origin}/sign_out`).then(handleErrors);
     setUserId(null);
     history.push("/login");
   }

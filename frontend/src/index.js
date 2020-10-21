@@ -5,6 +5,9 @@ import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 
+
+console.log(window.location)
+
 ReactDOM.render(
   <Router>
     <App />
