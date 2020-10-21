@@ -6,7 +6,6 @@ import { handleErrors, onError } from "./libs/errorLib";
 import Routes from "./Routes";
 import "./App.css"
 
-
 function App() {
   const history = useHistory();
   const [isAuthenticating, setIsAuthenticating] = useState(true);
@@ -27,9 +26,8 @@ function App() {
   useEffect(() => {
     async function onLoad() {
       try {
-        console.log(process.env)
-        console.log(process.env.PROCESSOR_LEVEL)
-        let id = await fetch(`http://localhost:${process.env.PORT}/current_session`)
+        console.log(window.location)
+        let id = await fetch(`http://localhost:${window.location.port}/current_session`)
           .then(handleCurrentSessionResponse)
         setUserId(id);
       }
@@ -50,7 +48,7 @@ function App() {
   }
 
   async function handleLogout() {
-    await fetch(`http://localhost:${process.env.PORT}/sign_out`).then(handleErrors);
+    await fetch(`http://localhost:${window.location.port}/sign_out`).then(handleErrors);
     setUserId(null);
     history.push("/login");
   }
