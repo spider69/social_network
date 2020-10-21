@@ -9,6 +9,7 @@ import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
 import com.softwaremill.tagging._
+import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
 import com.yusupov.social_network.actors.Authenticator
 
@@ -19,6 +20,11 @@ trait AuthenticatorApi extends SessionChecker with LazyLogging {
   import com.yusupov.social_network.actors.Authenticator._
 
   def createAuthenticator(): ActorRef @@ AuthenticatorTag
+
+  val config = ConfigFactory.load()
+  val cookieName = config.getString("service-settings.auth-settings.cookie-name")
+  val cookieDomain = config.getString("service-settings.auth-settings.cookie-domain")
+  logger.info(s"Cookie domain: $cookieDomain")
 
   lazy val authenticator = createAuthenticator()
 
@@ -39,10 +45,10 @@ trait AuthenticatorApi extends SessionChecker with LazyLogging {
           complete(signIn(login, password))
         }
       } ~
-      (pathPrefix("sign_out") & cookie("ssid")) { cookie =>
+      (pathPrefix("sign_out") & cookie(cookieName)) { cookie =>
         onComplete(signOut(cookie.value)) {
           case Success(Authenticator.SessionInvalidated) =>
-            deleteCookie("ssid") {
+            deleteCookie(cookieName) {
               complete(StatusCodes.OK)
             }
           case _ =>
@@ -52,7 +58,7 @@ trait AuthenticatorApi extends SessionChecker with LazyLogging {
   }
 
   override def checkSession(action: String => Route) =
-    optionalCookie("ssid") {
+    optionalCookie(cookieName) {
       case Some(sessionCookie) =>
         onComplete(checkCurrentSession(sessionCookie.value)) {
           case Success(Authenticator.SessionIsValid(userId)) =>
@@ -99,9 +105,10 @@ trait AuthenticatorApi extends SessionChecker with LazyLogging {
           StatusCodes.OK,
           `Set-Cookie`(
             HttpCookie(
-              name = "ssid",
+              name = cookieName,
               value = sessionId,
-              path = Some("/"), domain = Some("localhost"),
+              path = Some("/"),
+              domain = Some(cookieDomain),
               expires = Some(DateTime.MaxValue),
               secure = false,
               httpOnly = true
