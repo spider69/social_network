@@ -1,1 +1,1 @@
-web: target/universal/stage/bin/run_social_network -Dhttp.port=$PORT
+web: target/universal/stage/bin/run_social_network -Dservice-settings.port=$PORT
