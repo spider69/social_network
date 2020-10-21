@@ -35,7 +35,7 @@ export default function UserForms() {
     useEffect(() => {
         async function onLoad() {
             try {
-                let requestedForm = await fetch(`http://localhost:${process.env.PORT}/get_form/${id}`)
+                let requestedForm = await fetch(`${window.location.origin}/get_form/${id}`)
                     .then(handleErrors)
                     .then(response => response.json())
                 setForm(requestedForm);
@@ -53,7 +53,7 @@ export default function UserForms() {
         setIsLoading(true);
 
         try {
-            await fetch(`http://localhost:${process.env.PORT}/update_form/${id}`, {
+            await fetch(`${window.location.origin}/update_form/${id}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
