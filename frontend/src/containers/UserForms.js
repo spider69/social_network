@@ -17,12 +17,12 @@ export default function UserForms() {
     useEffect(() => {
         async function onLoad() {
             try {
-                let requestedForm = await fetch(`http://localhost:8080/get_form/${id}`)
+                let requestedForm = await fetch(`http://localhost:${process.env.PORT}/get_form/${id}`)
                     .then(handleErrors)
                     .then(response => response.json())
                 setForm(requestedForm);
 
-                let requestedFriends = await fetch(`http://localhost:8080/get_friends/${id}`)
+                let requestedFriends = await fetch(`http://localhost:${process.env.PORT}/get_friends/${id}`)
                     .then(handleErrors)
                     .then(response => response.json())
                 setFriends(requestedFriends)
@@ -40,7 +40,7 @@ export default function UserForms() {
 
     async function onAddFriend() {
         try {
-            await fetch(`http://localhost:8080/add_friend/?user=${userId}&friend=${id}`)
+            await fetch(`http://localhost:${process.env.PORT}/add_friend/?user=${userId}&friend=${id}`)
                 .then(handleErrors)
         } catch (e) {
             onError(e);
@@ -50,7 +50,7 @@ export default function UserForms() {
 
     async function onRemoveFriend() {
         try {
-            await fetch(`http://localhost:8080/remove_friend/?user=${userId}&friend=${id}`)
+            await fetch(`http://localhost:${process.env.PORT}/remove_friend/?user=${userId}&friend=${id}`)
                 .then(handleErrors)
         } catch (e) {
             onError(e);

@@ -19,7 +19,7 @@ export default function Users() {
       }
   
       try {
-        let allUsers = await fetch('http://localhost:8080/all_users')
+        let allUsers = await fetch(`http://localhost:${process.env.PORT}/all_users`)
           .then(handleErrors)
           .then(response => response.json())
         setUsers(allUsers)
@@ -53,7 +53,7 @@ export default function Users() {
     if (e.key === 'Enter') {
       e.preventDefault();
       try {
-        let filteredUsers = await fetch(`http://localhost:8080/all_users/?filter=${searchQuery}`)
+        let filteredUsers = await fetch(`http://localhost:${process.env.PORT}/all_users/?filter=${searchQuery}`)
           .then(handleErrors)
           .then(response => response.json())
         setUsers(filteredUsers)

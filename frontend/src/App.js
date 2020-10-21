@@ -27,7 +27,9 @@ function App() {
   useEffect(() => {
     async function onLoad() {
       try {
-        let id = await fetch('http://localhost:8080/current_session')
+        console.log(process.env)
+        console.log(process.env.PROCESSOR_LEVEL)
+        let id = await fetch(`http://localhost:${process.env.PORT}/current_session`)
           .then(handleCurrentSessionResponse)
         setUserId(id);
       }
@@ -48,7 +50,7 @@ function App() {
   }
 
   async function handleLogout() {
-    await fetch('http://localhost:8080/sign_out').then(handleErrors);
+    await fetch(`http://localhost:${process.env.PORT}/sign_out`).then(handleErrors);
     setUserId(null);
     history.push("/login");
   }
