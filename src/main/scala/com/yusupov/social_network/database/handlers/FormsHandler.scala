@@ -2,7 +2,7 @@ package com.yusupov.social_network.database.handlers
 
 import akka.actor.ActorRef
 import com.typesafe.scalalogging.LazyLogging
-import com.yusupov.social_network.actors.Database.{CreateForm, FormCreated, FormNotFound, FormUpdated, GetForm, RequestedForm, UpdateForm}
+import com.yusupov.social_network.actors.Database.{FormNotFound, FormUpdated, GetForm, RequestedForm, UpdateForm}
 import com.yusupov.social_network.data.UserForm
 import com.yusupov.social_network.database.DatabaseProvider
 import slick.jdbc.JdbcProfile
@@ -10,25 +10,24 @@ import slick.jdbc.JdbcProfile
 class FormsHandler[T <: JdbcProfile](databaseProvider: DatabaseProvider[T]) extends Handler with LazyLogging {
   import databaseProvider.profile.api._
 
-  def createForm(userId: String, form: UserForm) =
-    sqlu"""INSERT INTO UserForms(id, first_name, last_name, age, gender, interests, city)
-          VALUES('#$userId','#${form.firstName}','#${form.lastName}','#${form.age}','#${form.gender}','#${form.interests}','#${form.city}')"""
-
   def getForm(userId: String) =
-    sql"SELECT first_name, last_name, age, gender, interests, city FROM UserForms WHERE id='#$userId' LIMIT 1"
-      .as[(String, String, Int, String, String, String)]
+    sql"SELECT first_name, last_name, age, gender, interests, city FROM Users WHERE id='#$userId' LIMIT 1"
+      .as[(Option[String], Option[String], Option[Int], Option[String], Option[String], Option[String])]
 
   def updateForm(userId: String, form: UserForm) =
-    sqlu"""UPDATE UserForms SET first_name='#${form.firstName}', last_name='#${form.lastName}', age='#${form.age}',
-          gender='#${form.gender}', interests='#${form.interests}', city='#${form.city}' WHERE id='#$userId'"""
+    if (form.firstName.isEmpty && form.lastName.isEmpty && form.age.isEmpty && form.gender.isEmpty && form.interests.isEmpty && form.city.isEmpty) {
+      sqlu"SELECT 1"
+    } else {
+      val firstName = form.firstName.map(fn => s"first_name='$fn'").getOrElse("")
+      val lastName = form.lastName.map(ln => s"last_name='$ln'").getOrElse("")
+      val age = form.age.map(a => s"age=$a").getOrElse("")
+      val gender = form.gender.map(g => s"gender='$g'").getOrElse("")
+      val interests = form.interests.map(i => s"interests='$i'").getOrElse("")
+      val city = form.city.map(c => s"city='$c'").getOrElse("")
+      sqlu"""UPDATE Users SET #$firstName, #$lastName, #$age, #$gender, #$interests, #$city WHERE id='#$userId'"""
+    }
 
   override def handle(sender: ActorRef) = {
-    case CreateForm(userId, form) =>
-      logger.debug(s"Creating form for $userId")
-      val query = createForm(userId, form)
-      databaseProvider.exec(query)
-      sender ! FormCreated
-
     case GetForm(userId) =>
       logger.debug(s"Getting form for $userId")
       val query = getForm(userId)

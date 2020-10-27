@@ -16,7 +16,7 @@ class FriendsHandler[T <: JdbcProfile](databaseProvider: DatabaseProvider[T]) ex
     sqlu"DELETE FROM Friends WHERE user_id='#$userId' AND friend_id='#$friendId'"
 
   def getFriends(userId: String) =
-    sql"SELECT u.id, u.first_name, u.last_name FROM Friends f JOIN UserForms u ON f.friend_id=u.id WHERE f.user_id='#$userId'"
+    sql"SELECT u.id, u.first_name, u.last_name FROM Friends f JOIN Users u ON f.friend_id=u.id WHERE f.user_id='#$userId'"
       .as[(String, String, String)]
 
   override def handle(sender: ActorRef) = {

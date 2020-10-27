@@ -16,12 +16,10 @@ object FormsManager {
   def name = "forms-manager"
 
   sealed trait Request
-  case class CreateForm(userId: String, form: UserForm) extends Request
   case class GetForm(userId: String) extends Request
   case class UpdateForm(userId: String, form: UserForm) extends Request
 
   sealed trait Response
-  case object FormCreated extends Response
   case object FormUpdated extends Response
   case class RequestedForm(form: UserForm) extends Response
   case object FormsInternalError extends Response
@@ -40,17 +38,6 @@ class FormsManager(
   implicit val timeout = requestTimeout
 
   override def receive = {
-    case CreateForm(userId, form) =>
-      logger.debug(s"Creating form for $userId")
-      val requester = sender()
-      (database ? Database.CreateForm(userId, form))
-        .onComplete {
-          case Success(Database.FormCreated) =>
-            requester ! FormCreated
-          case _ =>
-            requester ! FormsInternalError
-        }
-
     case GetForm(userId) =>
       logger.debug(s"Getting form by $userId")
       val requester = sender()

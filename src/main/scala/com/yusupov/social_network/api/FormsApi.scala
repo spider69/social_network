@@ -21,26 +21,15 @@ trait FormsApi extends LazyLogging with JsonMarshaller {
 
   implicit def requestTimeout: Timeout
 
-  def formsRoute = {
-    (pathPrefix("create_form") & post) {
-      checkSession(userId => {
-        entity(as[UserForm]) {
-          form =>
-            onSuccess(createForm(userId, form)) {
-              case FormsManager.FormCreated => complete(StatusCodes.Created)
-              case _ => complete(StatusCodes.InternalServerError)
-            }
+  def formsRoute =
+    pathPrefix("get_form" / Segment) { userId =>
+      checkSession(_ => {
+        onSuccess(getForm(userId)) {
+          case FormsManager.RequestedForm(form) => complete(StatusCodes.Created, form)
+          case _ => complete(StatusCodes.InternalServerError)
         }
       })
     } ~
-      pathPrefix("get_form" / Segment) { userId =>
-        checkSession(_ => {
-          onSuccess(getForm(userId)) {
-            case FormsManager.RequestedForm(form) => complete(StatusCodes.Created, form)
-            case _ => complete(StatusCodes.InternalServerError)
-          }
-        })
-      } ~
       (pathPrefix("update_form" / Segment) & post) { userId =>
         checkSession(loggedInUserId => {
           if (loggedInUserId != userId) {
@@ -56,12 +45,6 @@ trait FormsApi extends LazyLogging with JsonMarshaller {
           }
         })
       }
-  }
-
-  private def createForm(userId: String, form: UserForm) = {
-    logger.debug(s"API: createForm for ${form.firstName}")
-    formsManager.ask(CreateForm(userId, form)).mapTo[Response]
-  }
 
   private def getForm(userId: String) = {
     logger.debug(s"API: getForm for $userId")

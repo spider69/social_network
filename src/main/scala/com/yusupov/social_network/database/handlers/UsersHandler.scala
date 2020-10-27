@@ -10,8 +10,8 @@ class UsersHandler[T <: JdbcProfile](databaseProvider: DatabaseProvider[T]) exte
   import databaseProvider.profile.api._
 
   def getUsers(filterExpr: Option[String]) = filterExpr match {
-    case Some("") | None => sql"SELECT f.id, f.first_name, f.last_name FROM Users u JOIN UserForms f ON u.id=f.id".as[(String,String,String)]
-    case Some(expr) => sql"SELECT f.id, f.first_name, f.last_name FROM Users u JOIN UserForms f ON u.id=f.id WHERE f.first_name LIKE '%#$expr%'".as[(String,String,String)]
+    case Some("") | None => sql"SELECT id, first_name, last_name FROM Users".as[(String,String,String)]
+    case Some(expr) => sql"SELECT id, first_name, last_name FROM Users WHERE first_name LIKE '%#$expr%'".as[(String,String,String)]
   }
 
   override def handle(sender: ActorRef) = {

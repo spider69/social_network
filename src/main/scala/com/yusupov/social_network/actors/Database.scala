@@ -20,7 +20,6 @@ object Database {
   case class DeleteSession(sessionId: String)
 
   case class GetUsers(filterExpr: Option[String])
-  case class CreateForm(userId: String, form: UserForm)
   case class GetForm(userId: String)
   case class UpdateForm(userId: String, form: UserForm)
 
@@ -38,7 +37,6 @@ object Database {
   case object SessionIsInvalid
   case object SessionDeleted
 
-  case object FormCreated
   case class RequestedForm(form: UserForm)
   case object FormUpdated
   case object FormNotFound
@@ -54,7 +52,7 @@ class Database[T <: JdbcProfile](
 {
 
   val formsHandler = new FormsHandler[T](databaseProvider)
-  val authHandler = new AuthHandler[T](databaseProvider, formsHandler)
+  val authHandler = new AuthHandler[T](databaseProvider)
   val usersHandler = new UsersHandler[T](databaseProvider)
   val friendsHandler = new FriendsHandler[T](databaseProvider)
 

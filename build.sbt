@@ -13,6 +13,8 @@ lazy val backend = (project in file("."))
       val akkaHttpVersion = "10.2.0"
       val macWireVersion = "2.3.7"
       Seq(
+        "org.scalatest" %% "scalatest" % "3.3.0-SNAP2" % Test,
+
         "com.typesafe.akka" %% "akka-actor"  % akkaVersion,
         "com.typesafe.akka" %% "akka-stream" % akkaVersion,
         "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion,
