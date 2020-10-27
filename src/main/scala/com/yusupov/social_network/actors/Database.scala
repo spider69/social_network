@@ -20,6 +20,7 @@ object Database {
   case class DeleteSession(sessionId: String)
 
   case class GetUsers(filterExpr: Option[String])
+  case class GetUsersByNamesPrefix(firstNamePrefix: String, lastNamePrefix: String)
   case class GetForm(userId: String)
   case class UpdateForm(userId: String, form: UserForm)
 

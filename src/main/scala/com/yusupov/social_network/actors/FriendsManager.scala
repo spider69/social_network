@@ -16,6 +16,7 @@ object FriendsManager {
 
   sealed trait Request
   case class GetUsers(filterExpr: Option[String]) extends Request
+  case class GetUsersByNamesPrefix(firstNamePrefix: String, lastNamePrefix: String) extends Request
   case class AddFriend(userId: String, friendId: String) extends Request
   case class RemoveFriend(userId: String, friendId: String) extends Request
   case class GetFriends(userId: String) extends Request
@@ -44,6 +45,17 @@ class FriendsManager(
       logger.debug("Getting users")
       val requester = sender()
       (database ? Database.GetUsers(filterExpr))
+        .onComplete {
+          case Success(Database.Users(users)) =>
+            requester ! Users(users)
+          case _ =>
+            requester ! FriendsInternalError
+        }
+
+    case GetUsersByNamesPrefix(firstNamePrefix, lastNamePrefix) =>
+      logger.debug("Getting users by names prefix")
+      val requester = sender()
+      (database ? Database.GetUsersByNamesPrefix(firstNamePrefix, lastNamePrefix))
         .onComplete {
           case Success(Database.Users(users)) =>
             requester ! Users(users)

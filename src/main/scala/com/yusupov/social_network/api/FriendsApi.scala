@@ -31,7 +31,15 @@ trait FriendsApi extends LazyLogging with JsonMarshaller {
           }
         })
       }
-    }
+    } ~
+      pathPrefix("find_users") {
+        parameters("first_name_prefix", "last_name_prefix") { (firstNamePrefix, lastNamePrefix) =>
+          onSuccess(getUsers(firstNamePrefix, lastNamePrefix)) {
+            case FriendsManager.Users(users) => complete(StatusCodes.OK, users.map(u => User(u._1, u._2, u._3)))
+            case _ => complete(StatusCodes.InternalServerError)
+          }
+        }
+      }
   }
 
   def friendsRoute = {
@@ -68,6 +76,11 @@ trait FriendsApi extends LazyLogging with JsonMarshaller {
   private def getAllUsers(filterExpr: Option[String]) = {
     logger.debug(s"API: getting all users")
     friendsManager.ask(GetUsers(filterExpr)).mapTo[Response]
+  }
+
+  private def getUsers(firstNamePrefix: String, lastNamePrefix: String) = {
+    logger.debug(s"API: getting users by names prefix")
+    friendsManager.ask(GetUsersByNamesPrefix(firstNamePrefix, lastNamePrefix)).mapTo[Response]
   }
 
   private def addFriend(userId: String, friendId: String) = {
