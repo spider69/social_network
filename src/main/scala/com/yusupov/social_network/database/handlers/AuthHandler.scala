@@ -2,13 +2,14 @@ package com.yusupov.social_network.database.handlers
 
 import java.util.UUID
 
-import akka.actor.ActorRef
 import com.typesafe.scalalogging.LazyLogging
-import com.yusupov.social_network.actors.Database.{CheckSession, CreateSession, CreateUser, DeleteSession, GetUserById, SessionCreated, SessionDeleted, SessionIsInvalid, SessionIsValid, UserById, UserCreated, UserNotFound}
+import com.yusupov.social_network.actors.Database._
 import com.yusupov.social_network.database.DatabaseProvider
 import com.yusupov.social_network.utils.HexUtils.bytesToHex
 import com.yusupov.social_network.utils.SecurityUtils
 import slick.jdbc.JdbcProfile
+
+import scala.concurrent.ExecutionContext
 
 class AuthHandler[T <: JdbcProfile](
   databaseProvider: DatabaseProvider[T]
@@ -32,44 +33,37 @@ class AuthHandler[T <: JdbcProfile](
     sql"SELECT id,first_name,password_hash,#${databaseProvider.hex("salt")} FROM Users WHERE id='#$id' LIMIT 1"
       .as[(String,String,String,String)]
 
-  override def handle(sender: ActorRef) = {
+  override def handle(implicit ec: ExecutionContext) = {
     case GetUserById(id) =>
       logger.debug(s"Getting user by id: $id")
-      val query = getUser(id)
-      val result = databaseProvider.exec(query)
-      result match {
-        case Vector(user, _*) => sender ! UserById(user._1, user._2, user._3, user._4)
-        case _ => sender ! UserNotFound
+      getUser(id).map {
+        case Vector(user, _*) => UserById(user._1, user._2, user._3, user._4)
+        case _ => UserNotFound
       }
 
     case CreateUser(email, name, password) =>
       logger.debug(s"Creating user $name")
       val salt = SecurityUtils.generateSalt()
       val passwordHash = SecurityUtils.passwordHash(password, salt)
-      val query = createUser(email, name, passwordHash, bytesToHex(salt))
-      databaseProvider.exec(query)
-      sender ! UserCreated
+      createUser(email, name, passwordHash, bytesToHex(salt))
+        .map(_ => UserCreated)
 
     case CreateSession(userId) =>
       logger.debug(s"Creating session for $userId")
       val sessionId = UUID.randomUUID().toString
-      val query = createSession(sessionId, userId)
-      databaseProvider.exec(query)
-      sender ! SessionCreated(sessionId)
+      createSession(sessionId, userId)
+        .map(_ => SessionCreated(sessionId))
 
     case CheckSession(sessionId) =>
       logger.debug(s"Checking session $sessionId")
-      val query = getSession(sessionId)
-      val result = databaseProvider.exec(query)
-      result match {
-        case Vector((_, userId), _*) => sender ! SessionIsValid(userId)
-        case _ => sender ! SessionIsInvalid
+      getSession(sessionId).map {
+        case Vector((_, userId), _*) => SessionIsValid(userId)
+        case _ => SessionIsInvalid
       }
 
     case DeleteSession(sessionId) =>
       logger.debug(s"Deleting session $sessionId")
-      val query = deleteSession(sessionId)
-      databaseProvider.exec(query)
-      sender ! SessionDeleted
+      deleteSession(sessionId)
+        .map(_ => SessionDeleted)
   }
 }

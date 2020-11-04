@@ -26,8 +26,10 @@ trait FriendsApi extends LazyLogging with JsonMarshaller {
       parameters("filter".optional) { filterExpr =>
         checkSession(_ => {
           onSuccess(getAllUsers(filterExpr)) {
-            case FriendsManager.Users(users) => complete(StatusCodes.OK, users.map(u => User(u._1, u._2, u._3)))
-            case _ => complete(StatusCodes.InternalServerError)
+            case FriendsManager.Users(users) =>
+              complete(StatusCodes.OK, users.map(u => User(u._1, u._2, u._3)))
+            case _ =>
+              complete(StatusCodes.InternalServerError)
           }
         })
       }
@@ -35,8 +37,10 @@ trait FriendsApi extends LazyLogging with JsonMarshaller {
       pathPrefix("find_users") {
         parameters("first_name_prefix", "last_name_prefix") { (firstNamePrefix, lastNamePrefix) =>
           onSuccess(getUsers(firstNamePrefix, lastNamePrefix)) {
-            case FriendsManager.Users(users) => complete(StatusCodes.OK, users.map(u => User(u._1, u._2, u._3)))
-            case _ => complete(StatusCodes.InternalServerError)
+            case FriendsManager.Users(users) =>
+              complete(StatusCodes.OK, users.map(u => User(u._1, u._2, u._3)))
+            case _ =>
+              complete(StatusCodes.InternalServerError)
           }
         }
       }

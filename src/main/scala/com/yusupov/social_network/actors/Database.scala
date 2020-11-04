@@ -1,6 +1,7 @@
 package com.yusupov.social_network.actors
 
 import akka.actor.Actor
+import akka.pattern.pipe
 import com.typesafe.scalalogging.LazyLogging
 import com.yusupov.social_network.data.UserForm
 import com.yusupov.social_network.database.DatabaseProvider
@@ -52,6 +53,8 @@ class Database[T <: JdbcProfile](
   with LazyLogging
 {
 
+  implicit val ec = context.system.dispatchers.lookup("database-dispatcher")
+
   val formsHandler = new FormsHandler[T](databaseProvider)
   val authHandler = new AuthHandler[T](databaseProvider)
   val usersHandler = new UsersHandler[T](databaseProvider)
@@ -67,8 +70,11 @@ class Database[T <: JdbcProfile](
   override def receive: Receive = {
     case msg =>
       val requester = sender()
-      val handler = handlers.map(_.handle(requester)).reduceLeft(_ orElse _)
-      handler(msg)
+      val handler = handlers.map(_.handle).reduceLeft(_ orElse _)
+      val future = handler(msg)
+      databaseProvider.database
+        .run(future)
+        .pipeTo(requester)
   }
 
 }

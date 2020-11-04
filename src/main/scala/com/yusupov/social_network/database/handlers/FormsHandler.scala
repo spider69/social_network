@@ -1,11 +1,12 @@
 package com.yusupov.social_network.database.handlers
 
-import akka.actor.ActorRef
 import com.typesafe.scalalogging.LazyLogging
-import com.yusupov.social_network.actors.Database.{FormNotFound, FormUpdated, GetForm, RequestedForm, UpdateForm}
+import com.yusupov.social_network.actors.Database._
 import com.yusupov.social_network.data.UserForm
 import com.yusupov.social_network.database.DatabaseProvider
 import slick.jdbc.JdbcProfile
+
+import scala.concurrent.ExecutionContext
 
 class FormsHandler[T <: JdbcProfile](databaseProvider: DatabaseProvider[T]) extends Handler with LazyLogging {
   import databaseProvider.profile.api._
@@ -27,20 +28,17 @@ class FormsHandler[T <: JdbcProfile](databaseProvider: DatabaseProvider[T]) exte
       sqlu"""UPDATE Users SET #$firstName, #$lastName, #$age, #$gender, #$interests, #$city WHERE id='#$userId'"""
     }
 
-  override def handle(sender: ActorRef) = {
+  override def handle(implicit ec: ExecutionContext) = {
     case GetForm(userId) =>
       logger.debug(s"Getting form for $userId")
-      val query = getForm(userId)
-      val result = databaseProvider.exec(query)
-      result match {
-        case Vector((firstName, lastName, age, gender, interests, city), _*) => sender ! RequestedForm(UserForm(firstName, lastName, age, gender, interests, city))
-        case _ => sender ! FormNotFound
+      getForm(userId).map {
+        case Vector((firstName, lastName, age, gender, interests, city), _*) => RequestedForm(UserForm(firstName, lastName, age, gender, interests, city))
+        case _ => FormNotFound
       }
 
     case UpdateForm(userId, form) =>
       logger.debug(s"Updating form for $userId")
-      val query = updateForm(userId, form)
-      databaseProvider.exec(query)
-      sender ! FormUpdated
+      updateForm(userId, form)
+        .map(_ => FormUpdated)
   }
 }
